@@ -164,6 +164,11 @@ private:
                                 unsigned int& ca, CS101_ASDU& asdu,
                                 InformationObject& io, uint64_t& ioa);
 
+    static void handleM_ME_TF_1(std::vector<Datapoint*>& datapoints,
+                                std::string& label, IEC104Client* mclient,
+                                unsigned int& ca, CS101_ASDU& asdu,
+                                InformationObject& io, uint64_t& ioa);
+
     // TC & TVC
     static void handleC_SC_TA_1(std::vector<Datapoint*>& datapoints,
                                 std::string& label, IEC104Client* mclient,
@@ -232,6 +237,13 @@ public:
     {
         m_addData(datapoints, ioa, dataname, value, qd, ts);
     }
+
+    void addData(std::vector<Datapoint*>& datapoints, int64_t ioa,
+                 const std::string& dataname, const bool state,
+                 QualifierOfCommand qu, CP56Time2a ts = nullptr)
+    {
+        m_addData(datapoints, ioa, dataname, state, qu, ts);
+    }
     // ==================================================================== //
 
     // Sends the datapoints passed as Reading to Fledge
@@ -239,11 +251,13 @@ public:
                   const std::vector<std::string> labels);
 
 private:
-    template <class T>
+    // T and T2 to comply with TMs and TCs
+    template <class T, class T2>
     void m_addData(std::vector<Datapoint*>& datapoints, int64_t ioa,
-                   const std::string& dataname, const T value,
-                   QualityDescriptor qd, CP56Time2a ts);
+                   const std::string& dataname, const T valuestates, T2 qdqu,
+                   CP56Time2a ts);
 
+    // T can be T or T2 from m_addData
     template <class T>
     static Datapoint* m_createDatapoint(const std::string& dataname,
                                         const T value)

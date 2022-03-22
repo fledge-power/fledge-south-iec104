@@ -38,7 +38,8 @@ map<int, string> mapOfAsdu = {
     {M_DP_TB_1, "M_DP_TB_1"}, {M_ST_NA_1, "M_ST_NA_1"},
     {M_ST_TB_1, "M_ST_TB_1"}, {M_ME_NA_1, "M_ME_NA_1"},
     {M_ME_TD_1, "M_ME_TD_1"}, {M_ME_TE_1, "M_ME_TE_1"},
-    {M_ME_NC_1, "M_ME_NC_1"}, {M_ME_TF_1, "M_ME_TF_1"}};
+    {M_ME_NC_1, "M_ME_NC_1"}, {M_ME_TF_1, "M_ME_TF_1"},
+    {C_SC_TA_1, "C_SC_TA_1"}};
 
 void IEC104::setJsonConfig(const std::string& stack_configuration,
                            const std::string& msg_configuration,
@@ -182,6 +183,7 @@ bool IEC104::m_asduReceivedHandler(void* parameter, int address,
             Logger::getLogger()->info("Test command with time tag CP56Time2a");
             break;
         case C_SC_TA_1:
+            handleASDU(labels, datapoints, mclient, asdu, handleC_SC_TA_1);
             Logger::getLogger()->info(
                 "Single command with time tag CP56Time2a");
             break;
@@ -464,7 +466,7 @@ void IEC104::handleM_ME_TF_1(vector<Datapoint*>& datapoints, string& label,
 }
 
 // TC & TVC
-// SingleCommandWithCP56Time2a
+// SingleCommandWithCP56Time2a (TC)
 void IEC104::handleC_SC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -488,7 +490,7 @@ void IEC104::handleC_SC_TA_1(vector<Datapoint*>& datapoints, string& label,
     SingleCommandWithCP56Time2a_destroy(io_casted);
 }
 
-// DoubleCommandWithCP56Time2a
+// DoubleCommandWithCP56Time2a (TC)
 void IEC104::handleC_DC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -497,7 +499,7 @@ void IEC104::handleC_DC_TA_1(vector<Datapoint*>& datapoints, string& label,
     // TODO
 }
 
-// SetpointCommandScaledWithCP56Time2a
+// SetpointCommandScaledWithCP56Time2a (TVC)
 void IEC104::handleC_SE_TB_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -506,7 +508,7 @@ void IEC104::handleC_SE_TB_1(vector<Datapoint*>& datapoints, string& label,
     // TODO
 }
 
-// SetpointCommandShortWithCP56Time2a
+// SetpointCommandShortWithCP56Time2a (TVC)
 void IEC104::handleC_SE_TC_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -515,7 +517,7 @@ void IEC104::handleC_SE_TC_1(vector<Datapoint*>& datapoints, string& label,
     // TODO
 }
 
-// StepCommandWithCP56Time2a
+// StepCommandWithCP56Time2a (TVC)
 void IEC104::handleC_RC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -1013,10 +1015,10 @@ void IEC104Client::sendData(CS101_ASDU asdu, vector<Datapoint*> datapoints,
     }
 }
 
-template <class T>
+template <class T, class T2>
 void IEC104Client::m_addData(vector<Datapoint*>& datapoints, int64_t ioa,
-                             const std::string& dataname, const T value,
-                             QualityDescriptor qd, CP56Time2a ts)
+                             const std::string& dataname, const T valuestate,
+                             T2 qdqu, CP56Time2a ts)
 {
     auto* measure_features = new vector<Datapoint*>;
 
@@ -1027,10 +1029,10 @@ void IEC104Client::m_addData(vector<Datapoint*>& datapoints, int64_t ioa,
             measure_features->push_back(m_createDatapoint(feature.key(), ioa));
         else if (feature.value() == "value")
             measure_features->push_back(
-                m_createDatapoint(feature.key(), value));
+                m_createDatapoint(feature.key(), valuestate));
         else if (feature.value() == "quality_desc")
             measure_features->push_back(
-                m_createDatapoint(feature.key(), (int64_t)qd));
+                m_createDatapoint(feature.key(), (T2)qdqu));
         else if (feature.value() == "time_marker")
             measure_features->push_back(m_createDatapoint(
                 feature.key(),
