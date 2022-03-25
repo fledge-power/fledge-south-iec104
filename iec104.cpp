@@ -482,10 +482,11 @@ void IEC104::handleC_SC_TA_1(vector<Datapoint*>& datapoints, string& label,
         CP56Time2a ts = SingleCommandWithCP56Time2a_getTimestamp(io_casted);
         bool is_invalid = CP56Time2a_isInvalid(ts);
         if (m_tsiv == "PROCESS" || !is_invalid)
-            mclient->addData(datapoints, ioa, label, state, qu, ts);
+            mclient->addData(datapoints, ioa, label, static_cast<long>(state),
+                             qu, ts);
     }
     else
-        mclient->addData(datapoints, ioa, label, state, qu);
+        mclient->addData(datapoints, ioa, label, static_cast<long>(state), qu);
 
     SingleCommandWithCP56Time2a_destroy(io_casted);
 }
@@ -1015,10 +1016,10 @@ void IEC104Client::sendData(CS101_ASDU asdu, vector<Datapoint*> datapoints,
     }
 }
 
-template <class T, class T2>
+template <class T>
 void IEC104Client::m_addData(vector<Datapoint*>& datapoints, int64_t ioa,
                              const std::string& dataname, const T valuestate,
-                             T2 qdqu, CP56Time2a ts)
+                             QualityDescriptor qdqu, CP56Time2a ts)
 {
     auto* measure_features = new vector<Datapoint*>;
 
@@ -1028,11 +1029,21 @@ void IEC104Client::m_addData(vector<Datapoint*>& datapoints, int64_t ioa,
         if (feature.value() == "ioa")
             measure_features->push_back(m_createDatapoint(feature.key(), ioa));
         else if (feature.value() == "value")
-            measure_features->push_back(
-                m_createDatapoint(feature.key(), valuestate));
+        {
+            if (typeid(valuestate).name() == typeid(bool).name())
+            {
+                measure_features->push_back(m_createDatapoint(
+                    feature.key(), static_cast<long>(valuestate)));
+            }
+            else
+            {
+                measure_features->push_back(
+                    m_createDatapoint(feature.key(), valuestate));
+            }
+        }
         else if (feature.value() == "quality_desc")
             measure_features->push_back(
-                m_createDatapoint(feature.key(), (T2)qdqu));
+                m_createDatapoint(feature.key(), (int64_t)qdqu));
         else if (feature.value() == "time_marker")
             measure_features->push_back(m_createDatapoint(
                 feature.key(),

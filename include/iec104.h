@@ -237,13 +237,6 @@ public:
     {
         m_addData(datapoints, ioa, dataname, value, qd, ts);
     }
-
-    void addData(std::vector<Datapoint*>& datapoints, int64_t ioa,
-                 const std::string& dataname, const bool state,
-                 QualifierOfCommand qu, CP56Time2a ts = nullptr)
-    {
-        m_addData(datapoints, ioa, dataname, state, qu, ts);
-    }
     // ==================================================================== //
 
     // Sends the datapoints passed as Reading to Fledge
@@ -252,10 +245,10 @@ public:
 
 private:
     // T and T2 to comply with TMs and TCs
-    template <class T, class T2>
+    template <class T>
     void m_addData(std::vector<Datapoint*>& datapoints, int64_t ioa,
-                   const std::string& dataname, const T valuestates, T2 qdqu,
-                   CP56Time2a ts);
+                   const std::string& dataname, const T value,
+                   QualityDescriptor qdqu, CP56Time2a ts);
 
     // T can be T or T2 from m_addData
     template <class T>
