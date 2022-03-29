@@ -39,7 +39,9 @@ map<int, string> mapOfAsdu = {
     {M_ST_TB_1, "M_ST_TB_1"}, {M_ME_NA_1, "M_ME_NA_1"},
     {M_ME_TD_1, "M_ME_TD_1"}, {M_ME_TE_1, "M_ME_TE_1"},
     {M_ME_NC_1, "M_ME_NC_1"}, {M_ME_TF_1, "M_ME_TF_1"},
-    {C_SC_TA_1, "C_SC_TA_1"}};
+    {C_SC_TA_1, "C_SC_TA_1"}, {C_SC_TA_1, "C_DC_TA_1"},
+    {C_SC_TA_1, "C_SE_TB_1"}, {C_SC_TA_1, "C_SE_TC_1"},
+    {C_SC_TA_1, "C_RC_TA_1"}};
 
 void IEC104::setJsonConfig(const std::string& stack_configuration,
                            const std::string& msg_configuration,
@@ -188,8 +190,23 @@ bool IEC104::m_asduReceivedHandler(void* parameter, int address,
                 "Single command with time tag CP56Time2a");
             break;
         case C_DC_TA_1:
+            handleASDU(labels, datapoints, mclient, asdu, handleC_DC_TA_1);
             Logger::getLogger()->info(
                 "Double command with time tag CP56Time2a");
+            break;
+        case C_SE_TB_1:
+            handleASDU(labels, datapoints, mclient, asdu, handleC_SE_TB_1);
+            Logger::getLogger()->info(
+                "Set Point command scaled with time tag CP56Time2a");
+            break;
+        case C_SE_TC_1:
+            handleASDU(labels, datapoints, mclient, asdu, handleC_SE_TC_1);
+            Logger::getLogger()->info(
+                "Set Point command short with time tag CP56Time2a");
+            break;
+        case C_RC_TA_1:
+            handleASDU(labels, datapoints, mclient, asdu, handleC_RC_TA_1);
+            Logger::getLogger()->info("Step command with time tag CP56Time2a");
             break;
         default:
             Logger::getLogger()->error("Type of message not supported");
@@ -497,7 +514,23 @@ void IEC104::handleC_DC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              CS101_ASDU& asdu, InformationObject& io,
                              uint64_t& ioa)
 {
-    // TODO
+    auto io_casted = (DoubleCommandWithCP56Time2a)io;
+    int state = DoubleCommand_getState((DoubleCommand)io_casted);
+    // qu qualifier of command
+    QualifierOfCommand qu = DoubleCommand_getQU((DoubleCommand)io_casted);
+
+    if (m_comm_wttag)
+    {
+        CP56Time2a ts = DoubleCommandWithCP56Time2a_getTimestamp(io_casted);
+        bool is_invalid = CP56Time2a_isInvalid(ts);
+        if (m_tsiv == "PROCESS" || !is_invalid)
+            mclient->addData(datapoints, ioa, label, static_cast<long>(state),
+                             qu, ts);
+    }
+    else
+        mclient->addData(datapoints, ioa, label, static_cast<long>(state), qu);
+
+    DoubleCommandWithCP56Time2a_destroy(io_casted);
 }
 
 // SetpointCommandScaledWithCP56Time2a (TVC)
@@ -506,7 +539,26 @@ void IEC104::handleC_SE_TB_1(vector<Datapoint*>& datapoints, string& label,
                              CS101_ASDU& asdu, InformationObject& io,
                              uint64_t& ioa)
 {
-    // TODO
+    auto io_casted = (SetpointCommandScaledWithCP56Time2a)io;
+    int value =
+        SetpointCommandScaled_getValue((SetpointCommandScaled)io_casted);
+    // qu qualifier of command
+    QualifierOfCommand qu =
+        SetpointCommandScaled_getQL((SetpointCommandScaled)io_casted);
+
+    if (m_comm_wttag)
+    {
+        CP56Time2a ts =
+            SetpointCommandScaledWithCP56Time2a_getTimestamp(io_casted);
+        bool is_invalid = CP56Time2a_isInvalid(ts);
+        if (m_tsiv == "PROCESS" || !is_invalid)
+            mclient->addData(datapoints, ioa, label, static_cast<long>(value),
+                             qu, ts);
+    }
+    else
+        mclient->addData(datapoints, ioa, label, static_cast<long>(value), qu);
+
+    SetpointCommandScaledWithCP56Time2a_destroy(io_casted);
 }
 
 // SetpointCommandShortWithCP56Time2a (TVC)
@@ -515,16 +567,51 @@ void IEC104::handleC_SE_TC_1(vector<Datapoint*>& datapoints, string& label,
                              CS101_ASDU& asdu, InformationObject& io,
                              uint64_t& ioa)
 {
-    // TODO
+    auto io_casted = (SetpointCommandShortWithCP56Time2a)io;
+    int value = SetpointCommandShort_getValue((SetpointCommandShort)io_casted);
+    // qu qualifier of command
+    QualifierOfCommand qu =
+        SetpointCommandShort_getQL((SetpointCommandShort)io_casted);
+
+    if (m_comm_wttag)
+    {
+        CP56Time2a ts =
+            SetpointCommandShortWithCP56Time2a_getTimestamp(io_casted);
+        bool is_invalid = CP56Time2a_isInvalid(ts);
+        if (m_tsiv == "PROCESS" || !is_invalid)
+            mclient->addData(datapoints, ioa, label, static_cast<long>(value),
+                             qu, ts);
+    }
+    else
+        mclient->addData(datapoints, ioa, label, static_cast<long>(value), qu);
+
+    SetpointCommandShortWithCP56Time2a_destroy(io_casted);
 }
 
-// StepCommandWithCP56Time2a (TVC)
+// StepCommandWithCP56Time2a (TC)
 void IEC104::handleC_RC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
                              uint64_t& ioa)
 {
-    // TODO
+    auto io_casted = (StepCommandWithCP56Time2a)io;
+    // State  = 0, 3 = invalid, 1 = lower, 2 = higher
+    StepCommandValue state = StepCommand_getState((StepCommand)io_casted);
+    // qu qualifier of command
+    QualifierOfCommand qu = StepCommand_getQU((StepCommand)io_casted);
+
+    if (m_comm_wttag)
+    {
+        CP56Time2a ts = StepCommandWithCP56Time2a_getTimestamp(io_casted);
+        bool is_invalid = CP56Time2a_isInvalid(ts);
+        if (m_tsiv == "PROCESS" || !is_invalid)
+            mclient->addData(datapoints, ioa, label, static_cast<long>(state),
+                             qu, ts);
+    }
+    else
+        mclient->addData(datapoints, ioa, label, static_cast<long>(state), qu);
+
+    StepCommandWithCP56Time2a_destroy(io_casted);
 }
 
 void IEC104::restart()
@@ -1002,8 +1089,8 @@ void IEC104Client::sendData(CS101_ASDU asdu, vector<Datapoint*> datapoints,
 
     DatapointValue header_dpv(data_header, true);
 
-    // We send as many pivot format objects as information objects in the source
-    // ASDU
+    // We send as many pivot format objects as information objects in the
+    // source ASDU
     int i = 0;
 
     for (Datapoint* item_dp : datapoints)
