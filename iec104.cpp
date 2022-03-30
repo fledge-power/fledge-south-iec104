@@ -653,8 +653,11 @@ void IEC104::start()
 /** Disconnect from the iec104 servers */
 void IEC104::stop()
 {
-    delete m_client;
-    m_client = nullptr;
+    if (m_client != nullptr)
+    {
+        delete m_client;
+        m_client = nullptr;
+    }
 
     for (auto& connection : m_connections)
     {
@@ -1065,4 +1068,6 @@ bool IEC104::operation(const std::string& operation, int count,
                                    operation.c_str());
         return false;
     }
+    Logger::getLogger()->error("No current connections");
+    return false;
 }
