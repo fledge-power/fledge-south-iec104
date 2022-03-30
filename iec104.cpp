@@ -1169,6 +1169,11 @@ void IEC104Client::m_addData(vector<Datapoint*>& datapoints, int64_t ioa,
 
 /**
  * SetPoint operation.
+ * This is the function used to send
+ * @param operation     name of the command asdu
+ * @param params        data object items of the command to send, composed of a
+ * name and a value
+ * @param count         number of parameters
  */
 bool IEC104::operation(const std::string& operation, int count,
                        PLUGIN_PARAMETER** params)
@@ -1196,16 +1201,20 @@ bool IEC104::operation(const std::string& operation, int count,
         }
         else if (operation.compare("SingleCommandWithCP56Time2a") == 0)
         {
-            int casdu = atoi(params[0]->value.c_str());
+            int ca = atoi(params[0]->value.c_str());
             int64_t ioa = atoi(params[1]->value.c_str());
             bool value = static_cast<bool>(atoi(params[2]->value.c_str()));
             struct sCP56Time2a testTimestamp;
+
             CP56Time2a_createFromMsTimestamp(&testTimestamp, Hal_getTimeInMs());
+
             InformationObject sc =
                 (InformationObject)SingleCommandWithCP56Time2a_create(
                     NULL, ioa, value, false, 0, &testTimestamp);
-            CS104_Connection_sendProcessCommandEx(
-                connection, CS101_COT_ACTIVATION, casdu, sc);
+
+            CS104_Connection_sendProcessCommandEx(connection,
+                                                  CS101_COT_ACTIVATION, ca, sc);
+
             Logger::getLogger()->info("SingleCommandWithCP56Time2a send");
             InformationObject_destroy(sc);
             return true;
@@ -1216,14 +1225,20 @@ bool IEC104::operation(const std::string& operation, int count,
             int64_t ioa = atoi(params[1]->value.c_str());
             int value = atoi(params[2]->value.c_str());
             struct sCP56Time2a testTimestamp;
+
             CP56Time2a_createFromMsTimestamp(&testTimestamp, Hal_getTimeInMs());
+
             InformationObject dc =
                 (InformationObject)DoubleCommandWithCP56Time2a_create(
                     NULL, ioa, value, false, 0, &testTimestamp);
+
             CS104_Connection_sendProcessCommandEx(
                 connection, CS101_COT_ACTIVATION, casdu, dc);
+
             Logger::getLogger()->info("DoubleCommandWithCP56Time2a send");
+
             InformationObject_destroy(dc);
+
             return true;
         }
         Logger::getLogger()->error("Unrecognised operation %s",
