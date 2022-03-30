@@ -207,14 +207,3 @@ public:
     MockIEC104() : IEC104(){};
     MOCK_METHOD(void, start, ());
 };
-
-TEST(IEC104, PluginStart)
-{
-    ConfigCategory *emptyConfig = new ConfigCategory();
-    PLUGIN_HANDLE handle = plugin_init(emptyConfig);
-    MockIEC104 mockIEC104;
-    ON_CALL(mockIEC104, start()).WillByDefault([this]() {
-        cout << "is called" << endl;
-    });
-    plugin_start((PLUGIN_HANDLE *)handle);
-}
