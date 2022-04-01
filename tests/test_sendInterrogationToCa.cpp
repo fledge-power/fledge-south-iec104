@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include "conf_init.h"
-
 using namespace std;
 using namespace nlohmann;
 typedef struct
