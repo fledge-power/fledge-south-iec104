@@ -61,6 +61,10 @@ public:
     void registerIngest(void* data, void (*cb)(void*, Reading));
     bool operation(const std::string& operation, int count,
                    PLUGIN_PARAMETER** params);
+    // For test purpose
+    void sendInterrogationCommmands();
+    void sendInterrogationCommmandToCA(unsigned int ca, int gi_repeat_count,
+                                       int gi_time);
 
     // For test purpose
     static bool m_asduReceivedHandlerP(void* parameter, int address,

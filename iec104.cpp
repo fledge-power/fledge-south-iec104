@@ -560,12 +560,12 @@ void IEC104::start()
 {
     Logger::getLogger()->info("Starting iec104");
 
-    // Fledge logging level setting
     switch (m_getConfigValue<int>(m_stack_configuration,
                                   "/transport_layer/llevel"_json_pointer))
     {
         case 1:
             Logger::getLogger()->setMinLevel("debug");
+            cout << "Nimportequoi" << endl;
             break;
         case 2:
             Logger::getLogger()->setMinLevel("info");
@@ -1071,4 +1071,12 @@ bool IEC104::operation(const std::string& operation, int count,
     }
     Logger::getLogger()->error("No current connections");
     return false;
+}
+
+void IEC104::sendInterrogationCommmands() { m_sendInterrogationCommmands(); }
+
+void IEC104::sendInterrogationCommmandToCA(unsigned int ca, int gi_repeat_count,
+                                           int gi_time)
+{
+    m_sendInterrogationCommmandToCA(ca, gi_repeat_count, gi_time);
 }
