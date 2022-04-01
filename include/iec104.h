@@ -183,8 +183,11 @@ private:
 
     static bool m_comm_wttag;
     static std::string m_tsiv;
+
+protected:
     std::vector<CS104_Connection> m_connections;
 
+private:
     INGEST_CB m_ingest;  // Callback function used to send data to south service
     void* m_data;        // Ingest function data
     IEC104Client* m_client;
