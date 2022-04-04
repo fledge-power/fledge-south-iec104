@@ -1212,9 +1212,9 @@ bool IEC104::operation(const std::string& operation, int count,
         }
         else if (operation.compare("SingleCommandWithCP56Time2a") == 0)
         {
-            // commond adress of information object to send
-            int ca = atoi(params[0]->value.c_str());
-            // information object adress received
+            // common adress of the asdu
+            int casdu = atoi(params[0]->value.c_str());
+            // information object adress
             int64_t ioa = atoi(params[1]->value.c_str());
             // command state to send, must be a boolean
             // 0 = off, 1 otherwise
@@ -1225,18 +1225,23 @@ bool IEC104::operation(const std::string& operation, int count,
 
             InformationObject sc =
                 (InformationObject)SingleCommandWithCP56Time2a_create(
-                    NULL, ioa, value, false, 0, &testTimestamp);
+                    NULL, ioa, value, Execute, NoAddDefinition, &testTimestamp);
 
-            CS104_Connection_sendProcessCommandEx(connection,
-                                                  CS101_COT_ACTIVATION, ca, sc);
+            bool isSent = CS104_Connection_sendProcessCommandEx(
+                connection, CS101_COT_ACTIVATION, casdu, sc);
 
-            Logger::getLogger()->info("SingleCommandWithCP56Time2a send");
+            if (isSent)
+                Logger::getLogger()->info("SingleCommandWithCP56Time2a sent");
+            else
+                Logger::getLogger()->info(
+                    "SingleCommandWithCP56Time2a not sent");
+
             InformationObject_destroy(sc);
             return true;
         }
         else if (operation.compare("DoubleCommandWithCP56Time2a") == 0)
         {
-            int ca = atoi(params[0]->value.c_str());
+            int casdu = atoi(params[0]->value.c_str());
             int64_t ioa = atoi(params[1]->value.c_str());
             // the command state to send, 4 possible values
             // (0 = not permitted, 1 = off, 2 = on, 3 = not permitted)
@@ -1250,11 +1255,14 @@ bool IEC104::operation(const std::string& operation, int count,
                 (InformationObject)DoubleCommandWithCP56Time2a_create(
                     NULL, ioa, value, Execute, NoAddDefinition, &testTimestamp);
 
-            CS104_Connection_sendProcessCommandEx(connection,
-                                                  CS101_COT_ACTIVATION, ca, dc);
+            bool isSent = CS104_Connection_sendProcessCommandEx(
+                connection, CS101_COT_ACTIVATION, casdu, dc);
 
-            Logger::getLogger()->info("DoubleCommandWithCP56Time2a send");
-
+            if (isSent)
+                Logger::getLogger()->info("DoubleCommandWithCP56Time2a sent");
+            else
+                Logger::getLogger()->info(
+                    "DoubleCommandWithCP56Time2a not sent");
             InformationObject_destroy(dc);
 
             return true;
