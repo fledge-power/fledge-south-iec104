@@ -169,7 +169,7 @@ private:
                                 unsigned int& ca, CS101_ASDU& asdu,
                                 InformationObject& io, uint64_t& ioa);
 
-    // TC & TVC
+    // commands and setpoint commands
     static void handleC_SC_TA_1(std::vector<Datapoint*>& datapoints,
                                 std::string& label, IEC104Client* mclient,
                                 unsigned int& ca, CS101_ASDU& asdu,
@@ -244,13 +244,11 @@ public:
                   const std::vector<std::string> labels);
 
 private:
-    // T and T2 to comply with TMs and TCs
     template <class T>
     void m_addData(std::vector<Datapoint*>& datapoints, int64_t ioa,
                    const std::string& dataname, const T value,
                    QualityDescriptor qdqu, CP56Time2a ts);
 
-    // T can be T or T2 from m_addData
     template <class T>
     static Datapoint* m_createDatapoint(const std::string& dataname,
                                         const T value)

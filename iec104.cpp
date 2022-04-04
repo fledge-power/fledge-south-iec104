@@ -18,6 +18,17 @@
 #include <iostream>
 #include <utility>
 
+// Qualifier of command
+#define NoAddDefinition 0
+#define ShortPulse 1
+#define LongPulse 2
+#define PersistentOutput 3
+#define Reserved 4  // > 3 value
+
+// (S/E bit) select command
+#define Execute false
+#define Select true
+
 using namespace std;
 using namespace nlohmann;
 
@@ -482,8 +493,8 @@ void IEC104::handleM_ME_TF_1(vector<Datapoint*>& datapoints, string& label,
     MeasuredValueShortWithCP56Time2a_destroy(io_casted);
 }
 
-// TC & TVC
-// SingleCommandWithCP56Time2a (TC)
+// Commands and Set-Point Commands
+// SingleCommandWithCP56Time2a
 void IEC104::handleC_SC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -508,7 +519,7 @@ void IEC104::handleC_SC_TA_1(vector<Datapoint*>& datapoints, string& label,
     SingleCommandWithCP56Time2a_destroy(io_casted);
 }
 
-// DoubleCommandWithCP56Time2a (TC)
+// DoubleCommandWithCP56Time2a
 void IEC104::handleC_DC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -533,7 +544,7 @@ void IEC104::handleC_DC_TA_1(vector<Datapoint*>& datapoints, string& label,
     DoubleCommandWithCP56Time2a_destroy(io_casted);
 }
 
-// SetpointCommandScaledWithCP56Time2a (TVC)
+// SetpointCommandScaledWithCP56Time2a
 void IEC104::handleC_SE_TB_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -561,7 +572,7 @@ void IEC104::handleC_SE_TB_1(vector<Datapoint*>& datapoints, string& label,
     SetpointCommandScaledWithCP56Time2a_destroy(io_casted);
 }
 
-// SetpointCommandShortWithCP56Time2a (TVC)
+// SetpointCommandShortWithCP56Time2a
 void IEC104::handleC_SE_TC_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -588,7 +599,7 @@ void IEC104::handleC_SE_TC_1(vector<Datapoint*>& datapoints, string& label,
     SetpointCommandShortWithCP56Time2a_destroy(io_casted);
 }
 
-// StepCommandWithCP56Time2a (TC)
+// StepCommandWithCP56Time2a
 void IEC104::handleC_RC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
@@ -1201,8 +1212,12 @@ bool IEC104::operation(const std::string& operation, int count,
         }
         else if (operation.compare("SingleCommandWithCP56Time2a") == 0)
         {
+            // commond adress of information object to send
             int ca = atoi(params[0]->value.c_str());
+            // information object adress received
             int64_t ioa = atoi(params[1]->value.c_str());
+            // command state to send, must be a boolean
+            // 0 = off, 1 otherwise
             bool value = static_cast<bool>(atoi(params[2]->value.c_str()));
             struct sCP56Time2a testTimestamp;
 
@@ -1221,19 +1236,22 @@ bool IEC104::operation(const std::string& operation, int count,
         }
         else if (operation.compare("DoubleCommandWithCP56Time2a") == 0)
         {
-            int casdu = atoi(params[0]->value.c_str());
+            int ca = atoi(params[0]->value.c_str());
             int64_t ioa = atoi(params[1]->value.c_str());
+            // the command state to send, 4 possible values
+            // (0 = not permitted, 1 = off, 2 = on, 3 = not permitted)
             int value = atoi(params[2]->value.c_str());
+
             struct sCP56Time2a testTimestamp;
 
             CP56Time2a_createFromMsTimestamp(&testTimestamp, Hal_getTimeInMs());
 
             InformationObject dc =
                 (InformationObject)DoubleCommandWithCP56Time2a_create(
-                    NULL, ioa, value, false, 0, &testTimestamp);
+                    NULL, ioa, value, Execute, NoAddDefinition, &testTimestamp);
 
-            CS104_Connection_sendProcessCommandEx(
-                connection, CS101_COT_ACTIVATION, casdu, dc);
+            CS104_Connection_sendProcessCommandEx(connection,
+                                                  CS101_COT_ACTIVATION, ca, dc);
 
             Logger::getLogger()->info("DoubleCommandWithCP56Time2a send");
 
