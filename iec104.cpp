@@ -565,7 +565,6 @@ void IEC104::start()
     {
         case 1:
             Logger::getLogger()->setMinLevel("debug");
-            cout << "Nimportequoi" << endl;
             break;
         case 2:
             Logger::getLogger()->setMinLevel("info");
@@ -915,7 +914,6 @@ void IEC104Client::sendData(CS101_ASDU asdu, vector<Datapoint*> datapoints,
     for (auto& feature :
          (*m_pivot_configuration)["mapping"]["data_object_header"].items())
     {
-        cout << "features : " << feature << endl;
         if (feature.value() == "type_id")
             data_header->push_back(m_createDatapoint(
                 feature.key(), (int64_t)CS101_ASDU_getTypeID(asdu)));
@@ -962,7 +960,6 @@ void IEC104Client::m_addData(vector<Datapoint*>& datapoints, int64_t ioa,
     for (auto& feature :
          (*m_pivot_configuration)["mapping"]["data_object_item"].items())
     {
-        cout << "items : " << feature << endl;
         if (feature.value() == "ioa")
             measure_features->push_back(m_createDatapoint(feature.key(), ioa));
         else if (feature.value() == "value")

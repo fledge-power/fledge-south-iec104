@@ -157,23 +157,6 @@ struct json_config
     });
 };
 
-class MockIEC104Client : public IEC104Client
-{
-public:
-    MockIEC104Client(IEC104* iec104, nlohmann::json* pivot_configuration)
-        : IEC104Client(iec104, pivot_configuration)
-    {
-    }
-    MOCK_METHOD(void, addData,
-                (std::vector<Datapoint*> & datapoints, int64_t ioa,
-                 const std::string& dataname, const int64_t value,
-                 QualityDescriptor qd, CP56Time2a ts));
-    MOCK_METHOD(void, addData,
-                (std::vector<Datapoint*> & datapoints, int64_t ioa,
-                 const std::string& dataname, const float value,
-                 QualityDescriptor qd, CP56Time2a ts));
-};
-
 // Dummy fonction to prevent code execution in iec104::ingest during test
 void ingest_cb(void* data, Reading reading) {}
 
