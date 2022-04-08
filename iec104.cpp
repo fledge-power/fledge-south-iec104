@@ -25,6 +25,9 @@
 #define PersistentOutput 3
 #define Reserved 4  // > 3 value
 
+// Qualifier of set point command
+#define Standard 0
+
 // (S/E bit) select command
 #define Execute false
 #define Select true
@@ -1264,6 +1267,89 @@ bool IEC104::operation(const std::string& operation, int count,
                 Logger::getLogger()->info(
                     "DoubleCommandWithCP56Time2a not sent");
             InformationObject_destroy(dc);
+
+            return true;
+        }
+        else if (operation.compare("StepCommandWithCP56Time2a") == 0)
+        {
+            int casdu = atoi(params[0]->value.c_str());
+            int64_t ioa = atoi(params[1]->value.c_str());
+            // the command state to send, 4 possible values
+            // (0 = invalid_0, 1 = lower, 2 = higher, 3 = invalid_3)
+            StepCommandValue value =
+                static_cast<StepCommandValue>(atoi(params[2]->value.c_str()));
+
+            struct sCP56Time2a testTimestamp;
+
+            CP56Time2a_createFromMsTimestamp(&testTimestamp, Hal_getTimeInMs());
+
+            InformationObject stpc =
+                (InformationObject)StepCommandWithCP56Time2a_create(
+                    NULL, ioa, value, Execute, NoAddDefinition, &testTimestamp);
+
+            bool isSent = CS104_Connection_sendProcessCommandEx(
+                connection, CS101_COT_ACTIVATION, casdu, stpc);
+
+            if (isSent)
+                Logger::getLogger()->info("StepCommandWithCP56Time2a sent");
+            else
+                Logger::getLogger()->info("StepCommandWithCP56Time2a not sent");
+            InformationObject_destroy(stpc);
+
+            return true;
+        }
+        else if (operation.compare("SetpointCommandScaledWithCP56Time2a") == 0)
+        {
+            int casdu = atoi(params[0]->value.c_str());
+            int64_t ioa = atoi(params[1]->value.c_str());
+            // the scaled value (–32.768 .. 32.767)
+            int value = atoi(params[2]->value.c_str());
+
+            struct sCP56Time2a testTimestamp;
+
+            CP56Time2a_createFromMsTimestamp(&testTimestamp, Hal_getTimeInMs());
+
+            InformationObject sp_scaled =
+                (InformationObject)SetpointCommandScaledWithCP56Time2a_create(
+                    NULL, ioa, value, Execute, Standard, &testTimestamp);
+
+            bool isSent = CS104_Connection_sendProcessCommandEx(
+                connection, CS101_COT_ACTIVATION, casdu, sp_scaled);
+
+            if (isSent)
+                Logger::getLogger()->info(
+                    "SetpointCommandScaledWithCP56Time2a sent");
+            else
+                Logger::getLogger()->info(
+                    "SetpointCommandScaledWithCP56Time2a not sent");
+            InformationObject_destroy(sp_scaled);
+
+            return true;
+        }
+        else if (operation.compare("SetpointCommandShortWithCP56Time2a") == 0)
+        {
+            int casdu = atoi(params[0]->value.c_str());
+            int64_t ioa = atoi(params[1]->value.c_str());
+            float value = atof(params[2]->value.c_str());
+
+            struct sCP56Time2a testTimestamp;
+
+            CP56Time2a_createFromMsTimestamp(&testTimestamp, Hal_getTimeInMs());
+
+            InformationObject sp_short =
+                (InformationObject)SetpointCommandShortWithCP56Time2a_create(
+                    NULL, ioa, value, Execute, Standard, &testTimestamp);
+
+            bool isSent = CS104_Connection_sendProcessCommandEx(
+                connection, CS101_COT_ACTIVATION, casdu, sp_short);
+
+            if (isSent)
+                Logger::getLogger()->info(
+                    "SetpointCommandShortWithCP56Time2a sent");
+            else
+                Logger::getLogger()->info(
+                    "SetpointCommandShortWithCP56Time2a not sent");
+            InformationObject_destroy(sp_short);
 
             return true;
         }
