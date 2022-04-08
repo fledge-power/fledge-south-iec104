@@ -1183,7 +1183,7 @@ void IEC104Client::m_addData(vector<Datapoint*>& datapoints, int64_t ioa,
 
 /**
  * SetPoint operation.
- * This is the function used to send
+ * This is the function used to send an ASDU to the control station
  * @param operation     name of the command asdu
  * @param params        data object items of the command to send, composed of a
  * name and a value
@@ -1357,4 +1357,6 @@ bool IEC104::operation(const std::string& operation, int count,
                                    operation.c_str());
         return false;
     }
+    Logger::getLogger()->error("No connection available.");
+    return false;
 }
