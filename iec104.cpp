@@ -634,10 +634,8 @@ void IEC104::restart()
     start();
 }
 
-void IEC104::connect(unsigned int connection_index)
+void IEC104::prepareParameters(CS104_Connection& connection)
 {
-    CS104_Connection connection = m_connections[connection_index];
-
     // Transport layer initialization
     sCS104_APCIParameters apci_parameters = {12, 8,  10,
                                              15, 10, 20};  // default values
@@ -684,7 +682,12 @@ void IEC104::connect(unsigned int connection_index)
                                       "/application_layer/tsiv"_json_pointer);
 
     Logger::getLogger()->info("Connection initialized");
+}
 
+void IEC104::connect(unsigned int connection_index)
+{
+    CS104_Connection connection = m_connections[connection_index];
+    prepareParameters(connection);
     // Connection
     if (m_getConfigValue<bool>(
             m_stack_configuration,
@@ -722,7 +725,6 @@ void IEC104::start()
 {
     Logger::getLogger()->info("Starting iec104");
 
-    // Fledge logging level setting
     switch (m_getConfigValue<int>(m_stack_configuration,
                                   "/transport_layer/llevel"_json_pointer))
     {
@@ -746,36 +748,30 @@ void IEC104::start()
         m_getConfigValue<int>(m_stack_configuration,
                               "/application_layer/startup_time"_json_pointer),
         1000, &m_startup_done, "Startup");
-
+    startupWatchdog.detach();
     m_client = new IEC104Client(this, &m_pivot_configuration);
 
     for (auto& path_element :
          m_stack_configuration["transport_layer"]["connection"]["path"])
     {
+        string ip =
+            m_getConfigValue<string>(path_element, "/srv_ip"_json_pointer);
+        int port = m_getConfigValue<int>(path_element, "/port"_json_pointer);
+
         CS104_Connection new_connection = nullptr;
 
-        try
+        if (m_getConfigValue<bool>(
+                m_stack_configuration,
+                "/transport_layer/connection/tls"_json_pointer))
         {
-            string ip =
-                m_getConfigValue<string>(path_element, "/srv_ip"_json_pointer);
-            int port =
-                m_getConfigValue<int>(path_element, "/port"_json_pointer);
-
-            if (m_getConfigValue<bool>(
-                    m_stack_configuration,
-                    "/transport_layer/connection/tls"_json_pointer))
-                // new_connection = m_createTlsConnection(ip.c_str(), port);
-                Logger::getLogger()->error("TLS not supported yet");
-            else
-                new_connection = CS104_Connection_create(ip.c_str(), port);
+            Logger::getLogger()->error("TLS not supported yet");
+        }
+        else
+        {
+            new_connection = CS104_Connection_create(ip.c_str(), port);
             Logger::getLogger()->info("Connection created");
         }
-        catch (exception& e)
-        {
-            Logger::getLogger()->error("Exception while creating connection",
-                                       e.what());
-            throw e;
-        }
+
         CS104_Connection_setConnectionHandler(
             new_connection, m_connectionHandler, static_cast<void*>(this));
         CS104_Connection_setASDUReceivedHandler(new_connection,
@@ -804,7 +800,7 @@ void IEC104::start()
         m_stack_configuration,
         "/application_layer/exec_cycl_test"_json_pointer);
     // Test commands are sent at same rate as gi, with default of
-    // "cycl_test_delay" if gi is not activated
+    //"cycl_test_delay" if gi is not activated
     while (true)
     {
         if (exec_cycl_test) m_sendTestCommmands();
@@ -822,8 +818,11 @@ void IEC104::start()
 /** Disconnect from the iec104 servers */
 void IEC104::stop()
 {
-    delete m_client;
-    m_client = nullptr;
+    if (m_client != nullptr)
+    {
+        delete m_client;
+        m_client = nullptr;
+    }
 
     for (auto& connection : m_connections)
     {
@@ -1077,7 +1076,6 @@ void IEC104Client::sendData(CS101_ASDU asdu, vector<Datapoint*> datapoints,
                             const vector<std::string> labels)
 {
     auto* data_header = new vector<Datapoint*>;
-
     for (auto& feature :
          (*m_pivot_configuration)["mapping"]["data_object_header"].items())
     {
@@ -1357,6 +1355,14 @@ bool IEC104::operation(const std::string& operation, int count,
                                    operation.c_str());
         return false;
     }
-    Logger::getLogger()->error("No connection available.");
+    Logger::getLogger()->error("No current connections");
     return false;
+}
+
+void IEC104::sendInterrogationCommmands() { m_sendInterrogationCommmands(); }
+
+void IEC104::sendInterrogationCommmandToCA(unsigned int ca, int gi_repeat_count,
+                                           int gi_time)
+{
+    m_sendInterrogationCommmandToCA(ca, gi_repeat_count, gi_time);
 }

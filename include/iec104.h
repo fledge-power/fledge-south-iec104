@@ -53,6 +53,7 @@ public:
     void restart();
     void start();
     void stop();
+    void prepareParameters(CS104_Connection& connection);
     void connect(unsigned int connection_index);
 
     // void ingest(Reading& reading);
@@ -60,6 +61,10 @@ public:
     void registerIngest(void* data, void (*cb)(void*, Reading));
     bool operation(const std::string& operation, int count,
                    PLUGIN_PARAMETER** params);
+    // For test purpose
+    void sendInterrogationCommmands();
+    void sendInterrogationCommmandToCA(unsigned int ca, int gi_repeat_count,
+                                       int gi_time);
 
     // For test purpose
     static bool m_asduReceivedHandlerP(void* parameter, int address,
@@ -204,8 +209,11 @@ private:
 
     static bool m_comm_wttag;
     static std::string m_tsiv;
+
+protected:
     std::vector<CS104_Connection> m_connections;
 
+private:
     INGEST_CB m_ingest;  // Callback function used to send data to south service
     void* m_data;        // Ingest function data
     IEC104Client* m_client;
