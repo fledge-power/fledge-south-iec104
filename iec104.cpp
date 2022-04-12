@@ -1296,34 +1296,6 @@ bool IEC104::operation(const std::string& operation, int count,
 
             return true;
         }
-        else if (operation.compare("SetpointCommandScaledWithCP56Time2a") == 0)
-        {
-            int casdu = atoi(params[0]->value.c_str());
-            int64_t ioa = atoi(params[1]->value.c_str());
-            // the scaled value (–32.768 .. 32.767)
-            int value = atoi(params[2]->value.c_str());
-
-            struct sCP56Time2a testTimestamp;
-
-            CP56Time2a_createFromMsTimestamp(&testTimestamp, Hal_getTimeInMs());
-
-            InformationObject sp_scaled =
-                (InformationObject)SetpointCommandScaledWithCP56Time2a_create(
-                    NULL, ioa, value, Execute, Standard, &testTimestamp);
-
-            bool isSent = CS104_Connection_sendProcessCommandEx(
-                connection, CS101_COT_ACTIVATION, casdu, sp_scaled);
-
-            if (isSent)
-                Logger::getLogger()->info(
-                    "SetpointCommandScaledWithCP56Time2a sent");
-            else
-                Logger::getLogger()->info(
-                    "SetpointCommandScaledWithCP56Time2a not sent");
-            InformationObject_destroy(sp_scaled);
-
-            return true;
-        }
         else if (operation.compare("SetpointCommandShortWithCP56Time2a") == 0)
         {
             int casdu = atoi(params[0]->value.c_str());
