@@ -185,21 +185,6 @@ private:
                                 unsigned int& ca, CS101_ASDU& asdu,
                                 InformationObject& io, uint64_t& ioa);
 
-    static void handleC_SE_TB_1(std::vector<Datapoint*>& datapoints,
-                                std::string& label, IEC104Client* mclient,
-                                unsigned int& ca, CS101_ASDU& asdu,
-                                InformationObject& io, uint64_t& ioa);
-
-    static void handleC_SE_TC_1(std::vector<Datapoint*>& datapoints,
-                                std::string& label, IEC104Client* mclient,
-                                unsigned int& ca, CS101_ASDU& asdu,
-                                InformationObject& io, uint64_t& ioa);
-
-    static void handleC_RC_TA_1(std::vector<Datapoint*>& datapoints,
-                                std::string& label, IEC104Client* mclient,
-                                unsigned int& ca, CS101_ASDU& asdu,
-                                InformationObject& io, uint64_t& ioa);
-
     static nlohmann::json m_stack_configuration;
     static nlohmann::json m_msg_configuration;
     static nlohmann::json m_pivot_configuration;
