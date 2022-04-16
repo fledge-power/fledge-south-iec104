@@ -25,9 +25,6 @@
 #define PersistentOutput 3
 #define Reserved 4  // > 3 value
 
-// Qualifier of set point command
-#define Standard 0
-
 // (S/E bit) select command
 #define Execute false
 #define Select true
@@ -198,13 +195,9 @@ bool IEC104::m_asduReceivedHandler(void* parameter, int address,
             break;
         case C_SC_TA_1:
             handleASDU(labels, datapoints, mclient, asdu, handleC_SC_TA_1);
-            Logger::getLogger()->info(
-                "Single command with time tag CP56Time2a");
             break;
         case C_DC_TA_1:
             handleASDU(labels, datapoints, mclient, asdu, handleC_DC_TA_1);
-            Logger::getLogger()->info(
-                "Double command with time tag CP56Time2a");
             break;
         default:
             Logger::getLogger()->error("Type of message not supported");
@@ -480,16 +473,14 @@ void IEC104::handleM_ME_TF_1(vector<Datapoint*>& datapoints, string& label,
     MeasuredValueShortWithCP56Time2a_destroy(io_casted);
 }
 
-// Commands and Set-Point Commands
-// SingleCommandWithCP56Time2a
 void IEC104::handleC_SC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
                              uint64_t& ioa)
 {
     auto io_casted = (SingleCommandWithCP56Time2a)io;
-    bool state = SingleCommand_getState((SingleCommand)io_casted);
-    // qu qualifier of command
+    int64_t state = SingleCommand_getState((SingleCommand)io_casted);
+
     QualifierOfCommand qu = SingleCommand_getQU((SingleCommand)io_casted);
 
     if (m_comm_wttag)
@@ -497,24 +488,22 @@ void IEC104::handleC_SC_TA_1(vector<Datapoint*>& datapoints, string& label,
         CP56Time2a ts = SingleCommandWithCP56Time2a_getTimestamp(io_casted);
         bool is_invalid = CP56Time2a_isInvalid(ts);
         if (m_tsiv == "PROCESS" || !is_invalid)
-            mclient->addData(datapoints, ioa, label, static_cast<long>(state),
-                             qu, ts);
+            mclient->addData(datapoints, ioa, label, state, qu, ts);
     }
     else
-        mclient->addData(datapoints, ioa, label, static_cast<long>(state), qu);
+        mclient->addData(datapoints, ioa, label, state, qu);
 
     SingleCommandWithCP56Time2a_destroy(io_casted);
 }
 
-// DoubleCommandWithCP56Time2a
 void IEC104::handleC_DC_TA_1(vector<Datapoint*>& datapoints, string& label,
                              IEC104Client* mclient, unsigned int& ca,
                              CS101_ASDU& asdu, InformationObject& io,
                              uint64_t& ioa)
 {
     auto io_casted = (DoubleCommandWithCP56Time2a)io;
-    int state = DoubleCommand_getState((DoubleCommand)io_casted);
-    // qu qualifier of command
+    int64_t state = DoubleCommand_getState((DoubleCommand)io_casted);
+
     QualifierOfCommand qu = DoubleCommand_getQU((DoubleCommand)io_casted);
 
     if (m_comm_wttag)
@@ -522,16 +511,13 @@ void IEC104::handleC_DC_TA_1(vector<Datapoint*>& datapoints, string& label,
         CP56Time2a ts = DoubleCommandWithCP56Time2a_getTimestamp(io_casted);
         bool is_invalid = CP56Time2a_isInvalid(ts);
         if (m_tsiv == "PROCESS" || !is_invalid)
-            mclient->addData(datapoints, ioa, label, static_cast<long>(state),
-                             qu, ts);
+            mclient->addData(datapoints, ioa, label, state, qu, ts);
     }
     else
-        mclient->addData(datapoints, ioa, label, static_cast<long>(state), qu);
+        mclient->addData(datapoints, ioa, label, state, qu);
 
     DoubleCommandWithCP56Time2a_destroy(io_casted);
 }
-
-// SetpointCommandScaledWithCP56Time2a
 
 void IEC104::restart()
 {
@@ -1022,8 +1008,8 @@ void IEC104Client::sendData(CS101_ASDU asdu, vector<Datapoint*> datapoints,
 
 template <class T>
 void IEC104Client::m_addData(vector<Datapoint*>& datapoints, int64_t ioa,
-                             const std::string& dataname, const T valuestate,
-                             QualityDescriptor qdqu, CP56Time2a ts)
+                             const std::string& dataname, const T value,
+                             QualityDescriptor qd, CP56Time2a ts)
 {
     auto* measure_features = new vector<Datapoint*>;
 
@@ -1032,22 +1018,27 @@ void IEC104Client::m_addData(vector<Datapoint*>& datapoints, int64_t ioa,
     {
         if (feature.value() == "ioa")
             measure_features->push_back(m_createDatapoint(feature.key(), ioa));
+
         else if (feature.value() == "value")
-        {
-            if (typeid(valuestate).name() == typeid(bool).name())
-            {
-                measure_features->push_back(m_createDatapoint(
-                    feature.key(), static_cast<long>(valuestate)));
-            }
-            else
-            {
-                measure_features->push_back(
-                    m_createDatapoint(feature.key(), valuestate));
-            }
-        }
+            measure_features->push_back(
+                m_createDatapoint(feature.key(), value));
+
+        // else if (feature.value() == "value")
+        // {
+        //     if (typeid(value) == typeid(bool))
+        //     {
+        //         measure_features->push_back(m_createDatapoint(
+        //             feature.key(), static_cast<long>(value)));
+        //     }
+        //     else
+        //     {
+        //         measure_features->push_back(
+        //             m_createDatapoint(feature.key(), value));
+        //     }
+        // }
         else if (feature.value() == "quality_desc")
             measure_features->push_back(
-                m_createDatapoint(feature.key(), (int64_t)qdqu));
+                m_createDatapoint(feature.key(), (int64_t)qd));
         else if (feature.value() == "time_marker")
             measure_features->push_back(m_createDatapoint(
                 feature.key(),

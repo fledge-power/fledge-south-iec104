@@ -240,7 +240,7 @@ private:
     template <class T>
     void m_addData(std::vector<Datapoint*>& datapoints, int64_t ioa,
                    const std::string& dataname, const T value,
-                   QualityDescriptor qdqu, CP56Time2a ts);
+                   QualityDescriptor qd, CP56Time2a ts);
 
     template <class T>
     static Datapoint* m_createDatapoint(const std::string& dataname,
