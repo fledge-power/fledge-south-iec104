@@ -31,14 +31,14 @@ if (${CMAKE_BUILD_TYPE} STREQUAL Coverage)
                                       EXECUTABLE RunTests
                                       DEPENDENCIES RunTests
                                       BASE_DIRECTORY "${PROJECT_SOURCE_DIR}"
-                                      EXCLUDE "tests/*" "include/detail" "include/thirdparty" "include/byte_container_with_subtype.hpp" "include/adl_serializer.hpp" "include/json.hpp"
+                                      EXCLUDE "tests/*"
   )    
   
   setup_target_for_coverage_gcovr_html(NAME "${PROJECT_NAME}_coverage_html"
                                        EXECUTABLE RunTests
                                        DEPENDENCIES RunTests
                                        BASE_DIRECTORY "${PROJECT_SOURCE_DIR}"
-                                       EXCLUDE "tests/*" "include/detail" "include/thirdparty" "include/byte_container_with_subtype.hpp" "include/adl_serializer.hpp" "include/json.hpp"
+                                       EXCLUDE "tests/*"
   )
 else()
   message("Build without Coverage") 
