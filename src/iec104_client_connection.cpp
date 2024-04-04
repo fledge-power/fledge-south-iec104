@@ -1188,19 +1188,22 @@ IEC104ClientConnection::_conThread()
             case CON_STATE_CONNECTED_INACTIVE:
 
                 /* wait for Activate signal */
+                Iec104Utility::audit_success("SRVFL", beforeLog.c_str() + " connection established inactive");
 
                 break;
 
             case CON_STATE_CONNECTED_ACTIVE:
 
+                Iec104Utility::audit_success("SRVFL", beforeLog.c_str() + " connection established active");
                 executePeriodicTasks();
 
                 break;
 
             case CON_STATE_CLOSED:
 
+                Iec104Utility::audit_fail("SRVFL",beforeLog.c_str() + " connection closed");
+                
                 // start delay timer for reconnect
-
                 m_delayExpirationTime = getMonotonicTimeInMs() + 10000;
                 m_connectionState = CON_STATE_WAIT_FOR_RECONNECT;
 
