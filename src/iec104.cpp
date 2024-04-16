@@ -102,7 +102,7 @@ void IEC104::ingest(std::string assetName, std::vector<Datapoint*>& points)
         return;
     }
     Reading reading(assetName, points);
-    Iec104Utility::log_debug("%s Ingest reading: %s", beforeLog.c_str(), reading.toJSON().c_str());
+    Iec104Utility::log_info("%s Ingest reading: %s", beforeLog.c_str(), reading.toJSON().c_str());
     m_ingest(m_data, reading);
 }
 
