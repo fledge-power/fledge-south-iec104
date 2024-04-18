@@ -11,11 +11,15 @@
 
 #include <reading.h>
 
+#include <string>
+#include <lib60870/hal_time.h>
+
 #include "iec104.h"
 #include "iec104_client.h"
 #include "iec104_client_redgroup.h"
 #include "iec104_client_config.h"
 #include "iec104_utility.h"
+
 
 using namespace std;
 
@@ -102,7 +106,10 @@ void IEC104::ingest(std::string assetName, std::vector<Datapoint*>& points)
         return;
     }
     Reading reading(assetName, points);
-    Iec104Utility::log_info("%s Ingest reading: %s", beforeLog.c_str(), reading.toJSON().c_str());
+    uint64_t tsInNs = Hal_getTimeInNs();
+    std::string tsStrInNs = std::to_string(tsInNs);
+    //Iec104Utility::log_info("%s Ingest reading: %s", beforeLog.c_str(), reading.toJSON().c_str());
+    Iec104Utility::log_info("%s Ingest reading: %s TimestampInNs: %s", beforeLog.c_str(), reading.toJSON().c_str(), tsStrInNs.c_str());
     m_ingest(m_data, reading);
 }
 
