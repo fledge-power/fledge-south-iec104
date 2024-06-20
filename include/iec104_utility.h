@@ -71,19 +71,19 @@ namespace Iec104Utility {
     }
 
     void audit_fail(const std::string& code, const std::string& data) {  
-        AuditLogger::getLogger()->auditLog(code.c_str(), "FAILURE", format.c_str());
+        AuditLogger::getLogger()->auditLog(code.c_str(), "FAILURE", data.c_str());
     }
 
     void audit_success(const std::string& code, const std::string& data) {  
-        AuditLogger::getLogger()->auditLog(code.c_str(), "SUCCESS", format.c_str());
+        AuditLogger::getLogger()->auditLog(code.c_str(), "SUCCESS", data.c_str());
     }
 
     void audit_warn(const std::string& code, const std::string& data) {  
-        AuditLogger::getLogger()->auditLog(code.c_str(), "WARNING", format.c_str());
+        AuditLogger::getLogger()->auditLog(code.c_str(), "WARNING", data.c_str());
     }
 
     void audit_info(const std::string& code, const std::string& data) {  
-        AuditLogger::getLogger()->auditLog(code.c_str(), "INFORMATION", format.c_str());
+        AuditLogger::getLogger()->auditLog(code.c_str(), "INFORMATION", data.c_str());
     }
 }
 
