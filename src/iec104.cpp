@@ -11,11 +11,15 @@
 
 #include <reading.h>
 
+#include <string>
+#include <lib60870/hal_time.h>
+
 #include "iec104.h"
 #include "iec104_client.h"
 #include "iec104_client_redgroup.h"
 #include "iec104_client_config.h"
 #include "iec104_utility.h"
+
 
 using namespace std;
 
@@ -50,6 +54,7 @@ void IEC104::start()
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::start -";
     Iec104Utility::log_info("%s Starting iec104", beforeLog.c_str());
 
+/* NOT NEEDED, LET SOUTH SERVICE MANAGE MIN LOG LEVEL
     switch (m_config->LogLevel())
     {
         case 1:
@@ -67,6 +72,7 @@ void IEC104::start()
             break;
         //LCOV_EXCL_STOP    
     }
+    */
 
     m_client = new IEC104Client(this, m_config);
 
@@ -100,7 +106,10 @@ void IEC104::ingest(std::string assetName, std::vector<Datapoint*>& points)
         return;
     }
     Reading reading(assetName, points);
-    Iec104Utility::log_debug("%s Ingest reading: %s", beforeLog.c_str(), reading.toJSON().c_str());
+    uint64_t tsInNs = Hal_getTimeInNs();
+    std::string tsStrInNs = std::to_string(tsInNs);
+    //Iec104Utility::log_info("%s Ingest reading: %s", beforeLog.c_str(), reading.toJSON().c_str());
+    Iec104Utility::log_info("%s Ingest reading: %s TimestampInNs: %s", beforeLog.c_str(), reading.toJSON().c_str(), tsStrInNs.c_str());
     m_ingest(m_data, reading);
 }
 
