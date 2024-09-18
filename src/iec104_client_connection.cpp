@@ -1,4 +1,5 @@
 #include <ctime>
+#include <functional>
 
 #include <utils.h>
 #include <reading.h>
@@ -26,12 +27,17 @@ static uint64_t getMonotonicTimeInMs()
     return timeVal;
 }
 
-IEC104ClientConnection::IEC104ClientConnection(IEC104Client* client, IEC104ClientRedGroup* redGroup, RedGroupCon* connection, IEC104ClientConfig* config)
+IEC104ClientConnection::IEC104ClientConnection(
+    IEC104Client* client, IEC104ClientRedGroup* redGroup, RedGroupCon* connection, IEC104ClientConfig* config, const std::string& pathLetter)
 {
     m_config = config;
     m_redGroup = redGroup;
     m_redGroupConnection = connection;
     m_client = client;
+    m_path_letter = pathLetter;
+
+    // Send initial path connection status audit
+    m_sendConnectionStatusAudit("disconnected");
 }
 
 IEC104ClientConnection::~IEC104ClientConnection()
@@ -1186,23 +1192,20 @@ IEC104ClientConnection::_conThread()
                 break;
 
             case CON_STATE_CONNECTED_INACTIVE:
-
                 /* wait for Activate signal */
-                Iec104Utility::audit_success("SRVFL", std::string(beforeLog) + " connection established inactive");
-
+                m_sendConnectionStatusAudit("passive");
                 break;
 
             case CON_STATE_CONNECTED_ACTIVE:
+                m_sendConnectionStatusAudit("active");
 
-                Iec104Utility::audit_success("SRVFL", std::string(beforeLog) + " connection established active");
                 executePeriodicTasks();
 
                 break;
 
             case CON_STATE_CLOSED:
+                m_sendConnectionStatusAudit("disconnected");
 
-                Iec104Utility::audit_fail("SRVFL", std::string(beforeLog) + " connection closed");
-                
                 // start delay timer for reconnect
                 m_delayExpirationTime = getMonotonicTimeInMs() + 10000;
                 m_connectionState = CON_STATE_WAIT_FOR_RECONNECT;
@@ -1244,6 +1247,8 @@ IEC104ClientConnection::_conThread()
             if (con) {
                 CS104_Connection_destroy(con);
             }
+
+            m_sendConnectionStatusAudit("disconnected");
         }
 
         if (m_connectionState != oldConnectionState) {
@@ -1274,5 +1279,24 @@ IEC104ClientConnection::_conThread()
     if (tlsConfig) {
         TLSConfiguration_destroy(tlsConfig);
     }
+    m_sendConnectionStatusAudit("disconnected");
     Iec104Utility::log_debug("%s Connection thread terminated", beforeLog.c_str());
+}
+
+
+void
+IEC104ClientConnection::m_sendConnectionStatusAudit(const std::string& auditType)
+{
+    if (auditType == m_last_audit) {
+        return;
+    }
+    std::function<void(const std::string&, const std::string&, bool)> auditFn = Iec104Utility::audit_info;
+    if (auditType == "disconnected") {
+        auditFn = Iec104Utility::audit_fail;
+    }
+    else if (auditType == "passive" || auditType == "active") {
+        auditFn = Iec104Utility::audit_success;
+    }
+    auditFn("SRVFL", m_client->getServiceName() + "-" + std::to_string(m_redGroup->Index()) + "-" + m_path_letter + "-" + auditType, true);
+    m_last_audit = auditType;
 }

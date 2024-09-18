@@ -74,6 +74,10 @@ public:
 
     DataExchangeDefinition* getCnxLossStatusDatapoint();
 
+    int GetMaxRedGroups() const {return m_max_red_groups;};
+
+    bool isConfigComplete() const {return m_protocolConfigComplete && m_exchangeConfigComplete && m_tlsConfigComplete;};
+
 private:
 
     static bool isMessageTypeMatching(int expectedType, int rcvdType);
@@ -81,6 +85,7 @@ private:
     void deleteExchangeDefinitions();
 
     std::vector<IEC104ClientRedGroup*> m_redundancyGroups = std::vector<IEC104ClientRedGroup*>();
+    int m_max_red_groups = 2;
 
     std::map<int, std::map<int, DataExchangeDefinition*>> m_exchangeDefinitions = std::map<int, std::map<int, DataExchangeDefinition*>>();
 
@@ -108,6 +113,7 @@ private:
 
     bool m_protocolConfigComplete = false; /* flag if protocol configuration is read */
     bool m_exchangeConfigComplete = false; /* flag if exchange configuration is read */
+    bool m_tlsConfigComplete = false; /* flag if tls configuration is read */
 
     std::string m_connxStatus = ""; /* "asset" name for south plugin monitoring event */
 

@@ -525,6 +525,14 @@ IEC104Client::updateConnectionStatus(ConnectionStatus newState)
     m_connStatus = newState;
 
     sendSouthMonitoringEvent(true, false);
+
+    // Send audit for connection status
+    if (m_connStatus == ConnectionStatus::STARTED) {
+        Iec104Utility::audit_success("SRVFL", m_iec104->getServiceName() + "-connected");
+    }
+    else {
+        Iec104Utility::audit_fail("SRVFL", m_iec104->getServiceName() + "-disconnected");
+    }
 }
 
 void
@@ -1174,20 +1182,36 @@ IEC104Client::prepareConnections()
 {
     std::vector<IEC104ClientRedGroup*>& redGroups = m_config->RedundancyGroups();
 
-    for (auto& redGroup : redGroups)
-    {
+    int configuredRedGroups = redGroups.size();
+    for (int i=0 ; i<configuredRedGroups ; i++) {
+        auto& redGroup = redGroups[i];
         auto& connections = redGroup->Connections();
 
-        for (auto connection : connections)
-        {
-            IEC104ClientConnection* newConnection = new IEC104ClientConnection(this, redGroup, connection, m_config);
-
-            if (newConnection != nullptr)
-            {
+        for (int j=0 ; j<connections.size() ; j++) {
+            auto connection = connections[j];
+            IEC104ClientConnection* newConnection = new IEC104ClientConnection(this, redGroup, connection, m_config, (j == 0 ? "A" : "B"));
+            if (newConnection != nullptr) {
                 m_connections.push_back(newConnection);
             }
         }
+        // Send initial path connection status audit
+        int configuredConnections = connections.size();
+        if (configuredConnections == 0) {
+            Iec104Utility::audit_info("SRVFL", m_iec104->getServiceName() + "-" + std::to_string(i) + "-A-unused");
+        }
+        if (configuredConnections <= 1) {
+            Iec104Utility::audit_info("SRVFL", m_iec104->getServiceName() + "-" + std::to_string(i) + "-B-unused");
+        }
     }
+    // Send initial path connection status audit
+    int maxRedGroups = m_config->GetMaxRedGroups();
+    for(int i=configuredRedGroups ; i<maxRedGroups ; i++) {
+        Iec104Utility::audit_info("SRVFL", m_iec104->getServiceName() + "-" + std::to_string(i) + "-A-unused");
+        Iec104Utility::audit_info("SRVFL", m_iec104->getServiceName() + "-" + std::to_string(i) + "-B-unused");
+    }
+
+    // Send initial connection status audit
+    Iec104Utility::audit_fail("SRVFL", m_iec104->getServiceName() + "-disconnected");
 
     return true;
 }
@@ -1358,6 +1382,8 @@ IEC104Client::_monitoringThread()
     }
 
     m_connections.clear();
+
+    updateConnectionStatus(ConnectionStatus::NOT_CONNECTED);
 }
 
 bool
@@ -1648,3 +1674,9 @@ IEC104Client::sendSetpointShort(int ca, int ioa, float value, bool withTime, lon
 
     return true;
  }
+
+const std::string&
+IEC104Client::getServiceName() const
+{
+    return m_iec104->getServiceName();
+}

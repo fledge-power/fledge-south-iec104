@@ -35,10 +35,11 @@ class IEC104ClientRedGroup
 {
 public:
 
-    IEC104ClientRedGroup(const std::string& name): m_name(name) {};
+    IEC104ClientRedGroup(const std::string& name, int index): m_name(name), m_index(index) {};
     ~IEC104ClientRedGroup();
 
     const std::string& Name() {return m_name;};
+    int Index() {return m_index;};
     bool UseTLS() {return m_useTls;};
 
     std::vector<RedGroupCon*>& Connections() {return m_connections;};
@@ -66,6 +67,7 @@ private:
     std::vector<RedGroupCon*> m_connections;
 
     std::string m_name;
+    int m_index;
     bool m_useTls = false;
     
     int m_k = 12;

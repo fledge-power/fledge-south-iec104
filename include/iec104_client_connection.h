@@ -17,7 +17,7 @@ class IEC104ClientConnection
 {
 public:
 
-    IEC104ClientConnection(IEC104Client* client, IEC104ClientRedGroup* redGroup, RedGroupCon* connection, IEC104ClientConfig* config);
+    IEC104ClientConnection(IEC104Client* client, IEC104ClientRedGroup* redGroup, RedGroupCon* connection, IEC104ClientConfig* config, const std::string& pathLetter);
     ~IEC104ClientConnection();
 
     void Start();
@@ -49,6 +49,8 @@ private:
     bool prepareConnection();
     void startNewInterrogationCycle();
     void closeConnection();
+
+    void m_sendConnectionStatusAudit(const std::string& auditType);
 
     typedef enum {
         CON_STATE_IDLE,
@@ -104,6 +106,9 @@ private:
     void _conThread();
 
     std::vector<int>::iterator m_listOfCA_it;
+
+    std::string m_path_letter; // A or B
+    std::string m_last_audit; // Used to avoid sending the same audit multiple times in a row
 
     static bool m_asduReceivedHandler(void* parameter, int address, CS101_ASDU asdu);
 

@@ -516,7 +516,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                     continue;
                 }
 
-                IEC104ClientRedGroup* redundancyGroup = new IEC104ClientRedGroup(redGroupName);
+                IEC104ClientRedGroup* redundancyGroup = new IEC104ClientRedGroup(redGroupName, m_redundancyGroups.size());
 
                 Iec104Utility::log_debug("%s Adding red group with name: %s", beforeLog.c_str(), redGroupName);
 
@@ -967,6 +967,7 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importTlsConfig -";
     Document document;
+    m_tlsConfigComplete = false;
 
     if (document.Parse(const_cast<char*>(tlsConfig.c_str())).HasParseError()) {
         Iec104Utility::log_fatal("%s Parsing error in tls_conf json, offset %u: %s", beforeLog.c_str(),
@@ -1045,6 +1046,8 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
     else {
         Iec104Utility::log_warn("%s remote_certs does not exist or is not an array", beforeLog.c_str());
     }
+
+    m_tlsConfigComplete = true;
 }
 
 static vector<string> tokenizeString(string& str, string delimiter)

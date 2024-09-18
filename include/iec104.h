@@ -42,6 +42,9 @@ public:
     bool operation(const std::string& operation, int count,
                    PLUGIN_PARAMETER** params);
 
+    inline const std::string& getServiceName() const { return m_service_name; }
+    inline void setServiceName(const std::string& serviceName) { m_service_name = serviceName; }
+
 private:
 
     bool m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime);
@@ -62,6 +65,7 @@ private:
     INGEST_CB m_ingest = nullptr;  // Callback function used to send data to south service
     void* m_data = nullptr;        // Ingest function data
     IEC104Client* m_client = nullptr;
+    std::string m_service_name;    // Service name used to generate audits
 };
 
 #endif  // INCLUDE_IEC104_H_

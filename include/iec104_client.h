@@ -86,6 +86,8 @@ public:
 
     void updateQualityForDataObjectsNotReceivedInGIResponse(QualityDescriptor qd);
 
+    const std::string& getServiceName() const;
+
 private:
 
     std::vector<DataExchangeDefinition*> m_listOfStationGroupDatapoints;
