@@ -535,6 +535,7 @@ IEC104ClientConnection::executePeriodicTasks()
 
         bool sendTimeSyncCommand = false;
 
+        std::lock_guard<std::mutex> lock(m_conLock);
         /* send first time sync after connection was activated */
         if ((m_timeSynchronized == false) && (m_firstTimeSyncOperationCompleted == false) && (m_timeSyncCommandSent == false)) {
             sendTimeSyncCommand = true;
@@ -566,7 +567,6 @@ IEC104ClientConnection::executePeriodicTasks()
 
             if (CS104_Connection_sendClockSyncCommand(m_connection, ca, &ts)) {
                 Iec104Utility::log_info("%s Sent clock sync command (CA=%d)...", beforeLog.c_str(), ca);
-                std::lock_guard<std::mutex> lock(m_conLock);
                 m_timeSyncCommandSent = true;
             }
             else {
@@ -720,8 +720,10 @@ IEC104ClientConnection::m_asduReceivedHandler(void* parameter, int address,
                 break;
 
             case C_CS_NA_1:
+            {
                 Iec104Utility::log_info("%s Received time sync response", beforeLog.c_str());
 
+                std::lock_guard<std::mutex> lock(self->m_conLock);
                 if (self->m_timeSyncCommandSent == true) {
 
                     if (cot == CS101_COT_ACTIVATION_CON) {
@@ -762,6 +764,7 @@ IEC104ClientConnection::m_asduReceivedHandler(void* parameter, int address,
                 self->m_firstTimeSyncOperationCompleted = true;
 
                 break;
+            }
 
             case C_IC_NA_1:
                 {

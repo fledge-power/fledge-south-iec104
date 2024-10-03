@@ -71,7 +71,6 @@ void IEC104::start()
     m_client = std::make_shared<IEC104Client>(this, m_config);
 
     m_client->start();
-    Iec104Utility::log_debug("%s Started client %p", beforeLog.c_str(), (void*)m_client.get());
 }
 
 /** Disconnect from the iec104 servers */

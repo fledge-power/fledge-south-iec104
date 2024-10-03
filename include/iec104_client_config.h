@@ -32,7 +32,7 @@ public:
     void importTlsConfig(const std::string& tlsConfig);
 
     void importRedGroup(const rapidjson::Value& redGroup);
-    void importRedGroupCon(const rapidjson::Value& con, std::shared_ptr<IEC104ClientRedGroup> redundancyGroup);
+    void importRedGroupCon(const rapidjson::Value& con, std::shared_ptr<IEC104ClientRedGroup> redundancyGroup) const;
 
     int CaSize() {return m_caSize;};
     int IOASize() {return m_ioaSize;};

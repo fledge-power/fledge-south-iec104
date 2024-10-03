@@ -855,7 +855,7 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
     m_redundancyGroups.push_back(redundancyGroup);
 }
 
-void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC104ClientRedGroup> redundancyGroup)
+void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC104ClientRedGroup> redundancyGroup) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importRedGroupCon -";
 
@@ -883,22 +883,24 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
     
     string clientIp;
 
-    if (con.HasMember("clt_ip") && con["clt_ip"].IsString()) {
-        string cltIpStr = con["clt_ip"].GetString();
+    if (con.HasMember("clt_ip")) {
+        if (con["clt_ip"].IsString()) {
+            string cltIpStr = con["clt_ip"].GetString();
 
-        if (isValidIPAddress(cltIpStr)) {
-            clientIp = cltIpStr;
+            if (isValidIPAddress(cltIpStr)) {
+                clientIp = cltIpStr;
+            }
+            else {
+                Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client",
+                                        beforeLog.c_str(), cltIpStr.c_str());
+            }
         }
         else {
-            Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client",
-                                    beforeLog.c_str(), cltIpStr.c_str());
+            Iec104Utility::log_warn("%s  clt_ip is not a string -> ignore client",
+                                    beforeLog.c_str());
         }
     }
-    else {
-        Iec104Utility::log_warn("%s  clt_ip does not exist or is not a string -> ignore client",
-                                beforeLog.c_str());
-    }
-
+    
     if (con.HasMember("port")) {
         if (con["port"].IsInt()) {
             int tcpPortVal = con["port"].GetInt();
