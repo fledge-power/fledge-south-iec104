@@ -158,7 +158,7 @@ private:
 
     void updateQualityForAllDataObjects(QualityDescriptor qd);
 
-    void removeFromListOfDatapoints(std::vector<std::shared_ptr<DataExchangeDefinition>>& list, std::shared_ptr<DataExchangeDefinition> toRemove);
+    void removeFromListOfDatapoints(std::shared_ptr<DataExchangeDefinition> toRemove);
 
     template <class T>
     Datapoint* m_createDataObject(CS101_ASDU asdu, int64_t ioa, const std::string& dataname, const T value,

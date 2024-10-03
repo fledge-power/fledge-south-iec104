@@ -47,10 +47,9 @@ IEC104ClientConnection::Activate()
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConnection::Activate - ["
                         + m_redGroup->Name() + ", " + std::to_string(m_redGroupConnection->ConnId()) + ", "
                         + m_redGroupConnection->ServerIP() + ":" + std::to_string(m_redGroupConnection->TcpPort()) + "] -";
+    
+    std::lock_guard<std::mutex> lock(m_conLock);
     if (m_connectionState == CON_STATE_CONNECTED_INACTIVE) {
-
-        m_conLock.lock();
-
         if (m_connection) {
             Iec104Utility::log_info("%s Sending START-DT", beforeLog.c_str());
             CS104_Connection_sendStartDT(m_connection);
@@ -58,8 +57,6 @@ IEC104ClientConnection::Activate()
         else {
             Iec104Utility::log_warn("%s CS104 connection unavailable, cannot send START-DT", beforeLog.c_str());
         }
-
-        m_conLock.unlock();
 
         m_startDtSent = true;
 
@@ -91,49 +88,34 @@ IEC104ClientConnection::m_connectionHandler(void* parameter, CS104_Connection co
 
     Iec104Utility::log_debug("%s Connection state changed: %d", beforeLog.c_str(), static_cast<int>(event));
 
+    std::lock_guard<std::mutex> lock(self->m_conLock);
     ConState oldConnectionState = self->m_connectionState;
     if (event == CS104_CONNECTION_CLOSED)
     {
-        self->m_conLock.lock();
-
         self->m_connectionState = CON_STATE_CLOSED;
         self->m_connected = false;
         self->m_connecting = false;
-
-        self->m_conLock.unlock();
 
         self->m_client->sendCnxLossStatus(false);
     }
     else if (event == CS104_CONNECTION_OPENED)
     {
-        self->m_conLock.lock();
-
         self->m_connectionState = CON_STATE_CONNECTED_INACTIVE;
         self->m_connected = true;
         self->m_connecting = false;
-
-        self->m_conLock.unlock();
     }
     else if (event == CS104_CONNECTION_STARTDT_CON_RECEIVED)
     {
-        self->m_conLock.lock();
-
         self->m_nextTimeSync = getMonotonicTimeInMs();
         self->m_timeSynchronized = false;
         self->m_firstTimeSyncOperationCompleted = false;
         self->m_firstGISent = false;
 
         self->m_connectionState = CON_STATE_CONNECTED_ACTIVE;
-
-        self->m_conLock.unlock();
     }
     else if (event == CS104_CONNECTION_STOPDT_CON_RECEIVED)
     {
-        self->m_conLock.lock();
-
         self->m_connectionState = CON_STATE_CONNECTED_INACTIVE;
-
-        self->m_conLock.unlock();
     }
 
     if (self->m_connectionState != oldConnectionState) {
@@ -149,7 +131,7 @@ IEC104ClientConnection::sendInterrogationCommand(int ca)
                         + m_redGroupConnection->ServerIP() + ":" + std::to_string(m_redGroupConnection->TcpPort()) + "] -";
     bool success = false;
 
-    m_conLock.lock();
+    std::lock_guard<std::mutex> lock(m_conLock);
 
     if ((m_connection != nullptr) && (m_connectionState == CON_STATE_CONNECTED_ACTIVE))
     {
@@ -166,8 +148,6 @@ IEC104ClientConnection::sendInterrogationCommand(int ca)
                                 beforeLog.c_str(), (m_connection == nullptr)?"true":"false", static_cast<int>(m_connectionState), ca);
     }
 
-    m_conLock.unlock();
-
     return success;
 }
 
@@ -179,7 +159,7 @@ IEC104ClientConnection::sendSingleCommand(int ca, int ioa, bool value, bool with
                         + m_redGroupConnection->ServerIP() + ":" + std::to_string(m_redGroupConnection->TcpPort()) + "] -";
     bool success = false;
 
-    m_conLock.lock();
+    std::lock_guard<std::mutex> lock(m_conLock);
 
     if ((m_connection != nullptr) && (m_connectionState == CON_STATE_CONNECTED_ACTIVE))
     {
@@ -212,8 +192,6 @@ IEC104ClientConnection::sendSingleCommand(int ca, int ioa, bool value, bool with
                                 beforeLog.c_str(), (m_connection == nullptr)?"true":"false", static_cast<int>(m_connectionState));
     }
 
-    m_conLock.unlock();
-
     if (!success) Iec104Utility::log_warn("%s Failed to send single command (CA=%i, IOA=%i, value=%s, select=%s, withTime=%s, msTimestamp=%ld)",
                                         beforeLog.c_str(), ca, ioa, value?"true":"false", select?"true":"false", withTime?"true":"false",
                                         msTimestamp);
@@ -229,7 +207,7 @@ IEC104ClientConnection::sendDoubleCommand(int ca, int ioa, int value, bool withT
                         + m_redGroupConnection->ServerIP() + ":" + std::to_string(m_redGroupConnection->TcpPort()) + "] -";
     bool success = false;
 
-    m_conLock.lock();
+    std::lock_guard<std::mutex> lock(m_conLock);
 
     if ((m_connection != nullptr) && (m_connectionState == CON_STATE_CONNECTED_ACTIVE))
     {
@@ -261,8 +239,6 @@ IEC104ClientConnection::sendDoubleCommand(int ca, int ioa, int value, bool withT
                                 beforeLog.c_str(), (m_connection == nullptr)?"true":"false", static_cast<int>(m_connectionState));
     }
 
-    m_conLock.unlock();
-
     if (!success) Iec104Utility::log_warn("%s Failed to send double command (CA=%i, IOA=%i, value=%d, select=%s, withTime=%s, msTimestamp=%ld)",
                                         beforeLog.c_str(), ca, ioa, value, select?"true":"false", withTime?"true":"false", msTimestamp);
 
@@ -277,7 +253,7 @@ IEC104ClientConnection::sendStepCommand(int ca, int ioa, int value, bool withTim
                         + m_redGroupConnection->ServerIP() + ":" + std::to_string(m_redGroupConnection->TcpPort()) + "] -";
     bool success = false;
 
-    m_conLock.lock();
+    std::lock_guard<std::mutex> lock(m_conLock);
 
     if ((m_connection != nullptr) && (m_connectionState == CON_STATE_CONNECTED_ACTIVE))
     {
@@ -309,8 +285,6 @@ IEC104ClientConnection::sendStepCommand(int ca, int ioa, int value, bool withTim
                                 beforeLog.c_str(), (m_connection == nullptr)?"true":"false", static_cast<int>(m_connectionState));
     }
 
-    m_conLock.unlock();
-
     if (!success) Iec104Utility::log_warn("%s Failed to send step command (CA=%i, IOA=%i, value=%d, select=%s, withTime=%s, msTimestamp=%ld)",
                                         beforeLog.c_str(), ca, ioa, value, select?"true":"false", withTime?"true":"false", msTimestamp);
 
@@ -325,7 +299,7 @@ IEC104ClientConnection::sendSetpointNormalized(int ca, int ioa, float value, boo
                         + m_redGroupConnection->ServerIP() + ":" + std::to_string(m_redGroupConnection->TcpPort()) + "] -";
     bool success = false;
 
-    m_conLock.lock();
+    std::lock_guard<std::mutex> lock(m_conLock);
 
     if ((m_connection != nullptr) && (m_connectionState == CON_STATE_CONNECTED_ACTIVE))
     {
@@ -357,8 +331,6 @@ IEC104ClientConnection::sendSetpointNormalized(int ca, int ioa, float value, boo
                                 beforeLog.c_str(), (m_connection == nullptr)?"true":"false", static_cast<int>(m_connectionState));
     }
 
-    m_conLock.unlock();
-
     if (!success) Iec104Utility::log_warn("%s Failed to send setpoint(normalized) (CA=%i, IOA=%i, value=%f, withTime=%s, msTimestamp=%ld)",
                                         beforeLog.c_str(), ca, ioa, value, withTime?"true":"false", msTimestamp);
 
@@ -373,7 +345,7 @@ IEC104ClientConnection::sendSetpointScaled(int ca, int ioa, int value, bool with
                         + m_redGroupConnection->ServerIP() + ":" + std::to_string(m_redGroupConnection->TcpPort()) + "] -";
     bool success = false;
 
-    m_conLock.lock();
+    std::lock_guard<std::mutex> lock(m_conLock);
 
     if ((m_connection != nullptr) && (m_connectionState == CON_STATE_CONNECTED_ACTIVE))
     {
@@ -405,8 +377,6 @@ IEC104ClientConnection::sendSetpointScaled(int ca, int ioa, int value, bool with
                                 beforeLog.c_str(), (m_connection == nullptr)?"true":"false", static_cast<int>(m_connectionState));
     }
 
-    m_conLock.unlock();
-
     if (!success) Iec104Utility::log_warn("%s Failed to send setpoint(scaled) (CA=%i, IOA=%i, value=%d, withTime=%s, msTimestamp=%ld)",
                                         beforeLog.c_str(), ca, ioa, value, withTime?"true":"false", msTimestamp);
 
@@ -421,7 +391,7 @@ IEC104ClientConnection::sendSetpointShort(int ca, int ioa, float value, bool wit
                         + m_redGroupConnection->ServerIP() + ":" + std::to_string(m_redGroupConnection->TcpPort()) + "] -";
     bool success = false;
 
-    m_conLock.lock();
+    std::lock_guard<std::mutex> lock(m_conLock);
 
     if ((m_connection != nullptr) && (m_connectionState == CON_STATE_CONNECTED_ACTIVE))
     {
@@ -452,8 +422,6 @@ IEC104ClientConnection::sendSetpointShort(int ca, int ioa, float value, bool wit
         Iec104Utility::log_warn("%s Connection unavailable (%s) or not in connected state (%i), cannot send step command",
                                 beforeLog.c_str(), (m_connection == nullptr)?"true":"false", static_cast<int>(m_connectionState));
     }
-
-    m_conLock.unlock();
 
     if (!success) Iec104Utility::log_warn("%s Failed to send setpoint(short) (CA=%i, IOA=%i, value=%f, withTime=%s, msTimestamp=%ld)",
                                         beforeLog.c_str(), ca, ioa, value, withTime?"true":"false", msTimestamp);
@@ -598,12 +566,8 @@ IEC104ClientConnection::executePeriodicTasks()
 
             if (CS104_Connection_sendClockSyncCommand(m_connection, ca, &ts)) {
                 Iec104Utility::log_info("%s Sent clock sync command (CA=%d)...", beforeLog.c_str(), ca);
-
-                m_conLock.lock();
-
+                std::lock_guard<std::mutex> lock(m_conLock);
                 m_timeSyncCommandSent = true;
-
-                m_conLock.unlock();
             }
             else {
                 Iec104Utility::log_error("%s Failed to send clock sync command (CA=%d)", beforeLog.c_str(), ca);
@@ -1139,27 +1103,24 @@ IEC104ClientConnection::_conThread()
 
                     CS104_Connection con = nullptr;
 
-                    m_conLock.lock();
+                    {
+                        std::lock_guard<std::mutex> lock(m_conLock);
 
-                    con = m_connection;
+                        con = m_connection;
 
-                    m_connection = nullptr;
-
-                    m_conLock.unlock();
+                        m_connection = nullptr;
+                    }
 
                     if (con != nullptr) {
                         CS104_Connection_destroy(con);
                     }
 
-                    m_conLock.lock();
-
+                    std::lock_guard<std::mutex> lock(m_conLock);
                     if (prepareConnection()) {
                         m_connectionState = CON_STATE_CONNECTING;
                         m_connecting = true;
 
                         m_delayExpirationTime = getMonotonicTimeInMs() + 10000;
-
-                        m_conLock.unlock();
 
                         CS104_Connection_connectAsync(m_connection);
 
@@ -1168,10 +1129,7 @@ IEC104ClientConnection::_conThread()
                     else {
                         m_connectionState = CON_STATE_FATAL_ERROR;
                         Iec104Utility::log_error("%s Fatal configuration error", beforeLog.c_str());
-
-                        m_conLock.unlock();
                     }
-
                 }
 
                 break;
@@ -1227,17 +1185,17 @@ IEC104ClientConnection::_conThread()
             Iec104Utility::log_debug("%s Disconnect requested -> terminate connection", beforeLog.c_str());
             CS104_Connection con = nullptr;
 
-            m_conLock.lock();
+            {
+                std::lock_guard<std::mutex> lock(m_conLock);
 
-            m_connected = false;
-            m_connecting = false;
-            m_disconnect = false;
+                m_connected = false;
+                m_connecting = false;
+                m_disconnect = false;
 
-            con = m_connection;
+                con = m_connection;
 
-            m_connection = nullptr;
-
-            m_conLock.unlock();
+                m_connection = nullptr;
+            }
 
             if (con) {
                 CS104_Connection_destroy(con);
@@ -1257,15 +1215,15 @@ IEC104ClientConnection::_conThread()
     CS104_Connection con = nullptr;
     TLSConfiguration tlsConfig = nullptr;
 
-    m_conLock.lock();
+    {
+        std::lock_guard<std::mutex> lock(m_conLock);
 
-    con = m_connection;
-    tlsConfig = m_tlsConfig;
+        con = m_connection;
+        tlsConfig = m_tlsConfig;
 
-    m_connection = nullptr;
-    m_tlsConfig = nullptr;
-
-    m_conLock.unlock();
+        m_connection = nullptr;
+        m_tlsConfig = nullptr;
+    }
 
     if (con) {
         CS104_Connection_destroy(con);

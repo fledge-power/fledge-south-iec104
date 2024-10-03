@@ -6,6 +6,8 @@
 #include <vector>
 #include <memory>
 
+#include <rapidjson/document.h>
+
 class IEC104ClientRedGroup;
 
 struct DataExchangeDefinition {
@@ -28,6 +30,8 @@ public:
     void importProtocolConfig(const std::string& protocolConfig);
     void importExchangeConfig(const std::string& exchangeConfig);
     void importTlsConfig(const std::string& tlsConfig);
+
+    void importRedGroup(const rapidjson::Value& redGroup);
 
     int CaSize() {return m_caSize;};
     int IOASize() {return m_ioaSize;};

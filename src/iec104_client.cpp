@@ -124,16 +124,13 @@ static bool isSupportedCommand(int typeId)
 
 std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::checkForOutstandingCommand(int typeId, int ca, int ioa, IEC104ClientConnection* connection)
 {
-    m_outstandingCommandsMtx.lock();
+    std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx);
 
     for (std::shared_ptr<OutstandingCommand> command : m_outstandingCommands) {
         if ((command->typeId == typeId) && (command->ca == ca) && (command->ioa == ioa) && (command->clientCon.get() == connection)) {
-            m_outstandingCommandsMtx.unlock();
             return command;
         }
     }
-
-    m_outstandingCommandsMtx.unlock();
 
     return nullptr;
 }
@@ -141,11 +138,10 @@ std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::checkForOutstand
 void IEC104Client::checkOutstandingCommandTimeouts()
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::checkOutstandingCommandTimeouts -";
+    std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx);
     uint64_t currentTime = getMonotonicTimeInMs();
 
     std::vector<std::shared_ptr<OutstandingCommand>> listOfTimedoutCommands;
-
-    m_outstandingCommandsMtx.lock();
 
     for (std::shared_ptr<OutstandingCommand> command : m_outstandingCommands)
     {
@@ -172,18 +168,14 @@ void IEC104Client::checkOutstandingCommandTimeouts()
         // remove object command from m_outstandingCommands
         m_outstandingCommands.erase(std::remove(m_outstandingCommands.begin(), m_outstandingCommands.end(), commandToRemove), m_outstandingCommands.end());
     }
-
-    m_outstandingCommandsMtx.unlock();
 }
 
 void IEC104Client::removeOutstandingCommand(std::shared_ptr<OutstandingCommand> command)
 {
-    m_outstandingCommandsMtx.lock();
+    std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx);
 
     // remove object command from m_outstandingCommands
     m_outstandingCommands.erase(std::remove(m_outstandingCommands.begin(), m_outstandingCommands.end(), command), m_outstandingCommands.end());
-
-    m_outstandingCommandsMtx.unlock();
 }
 
 void IEC104Client::updateQualityForAllDataObjects(QualityDescriptor qd)
@@ -287,8 +279,9 @@ void IEC104Client::updateQualityForDataObjectsNotReceivedInGIResponse(QualityDes
     }
 }
 
-void IEC104Client::removeFromListOfDatapoints(std::vector<std::shared_ptr<DataExchangeDefinition>>& list, std::shared_ptr<DataExchangeDefinition> toRemove)
+void IEC104Client::removeFromListOfDatapoints(std::shared_ptr<DataExchangeDefinition> toRemove)
 {
+    auto& list = m_listOfStationGroupDatapoints;
     list.erase(std::remove(list.begin(), list.end(), toRemove), list.end());
 }
 
@@ -633,7 +626,7 @@ IEC104Client::handleASDU(IEC104ClientConnection* connection, CS101_ASDU asdu)
 
                 if (exgDef) {
                     if (isInStationGroup(exgDef)) {
-                        removeFromListOfDatapoints(m_listOfStationGroupDatapoints, exgDef);
+                        removeFromListOfDatapoints(exgDef);
                         Iec104Utility::log_debug("%s Removed station group datapoint for type %s (%d) with CA: %i IOA: %i", beforeLog.c_str(),
                                                 IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, label->c_str(), ca, ioa);
                     }
@@ -1174,20 +1167,20 @@ IEC104Client::prepareConnections()
 {
     auto& redGroups = m_config->RedundancyGroups();
 
-    int configuredRedGroups = static_cast<int>(redGroups.size());
+    auto configuredRedGroups = static_cast<int>(redGroups.size());
     for (int i=0 ; i<configuredRedGroups ; i++) {
         auto& redGroup = redGroups[i];
         auto& connections = redGroup->Connections();
 
         for (int j=0 ; j<connections.size() ; j++) {
             auto connection = connections[j];
-            std::shared_ptr<IEC104ClientConnection> newConnection = std::make_shared<IEC104ClientConnection>(m_iec104->getClient(), redGroup, connection, m_config, (j == 0 ? "A" : "B"));
+            auto newConnection = std::make_shared<IEC104ClientConnection>(m_iec104->getClient(), redGroup, connection, m_config, (j == 0 ? "A" : "B"));
             if (newConnection != nullptr) {
                 m_connections.push_back(newConnection);
             }
         }
         // Send initial path connection status audit
-        int configuredConnections = static_cast<int>(connections.size());
+        auto configuredConnections = static_cast<int>(connections.size());
         if (configuredConnections == 0) {
             Iec104Utility::audit_info("SRVFL", m_iec104->getServiceName() + "-" + std::to_string(i) + "-A-unused");
         }
@@ -1266,98 +1259,98 @@ IEC104Client::_monitoringThread()
 
     while (m_started)
     {
-        m_activeConnectionMtx.lock();
-
-        if (m_activeConnection == nullptr)
         {
-            bool foundOpenConnections = false;
+            std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
 
-            /* activate the first open connection */
-            for (auto clientConnection : m_connections)
+            if (m_activeConnection == nullptr)
             {
-                if (clientConnection->Connected()) {
+                bool foundOpenConnections = false;
 
-                    backupConnectionStartTime = Hal_getTimeInMs() + BACKUP_CONNECTION_TIMEOUT;
-
-                    foundOpenConnections = true;
-
-                    clientConnection->Activate();
-
-                    m_activeConnection = clientConnection;
-
-                    updateConnectionStatus(ConnectionStatus::STARTED);
-
-                    Iec104Utility::log_info("%s Activated connection", beforeLog.c_str());
-                    break;
-                }
-            }
-
-            if (foundOpenConnections) {
-                firstConnected = true;
-                qualityUpdateTimer = 0;
-                qualityUpdated = false;
-            }
-            else {
-
-                if (firstConnected) {
-
-                    if (qualityUpdated == false) {
-                        if (qualityUpdateTimer != 0) {
-                            if (getMonotonicTimeInMs() > qualityUpdateTimer) {
-                                Iec104Utility::log_info("%s Sending all data objects with non topical quality after connection lost for %dms",
-                                                        beforeLog.c_str(), qualityUpdateTimer);
-                                updateQualityForAllDataObjects(IEC60870_QUALITY_NON_TOPICAL);
-                                qualityUpdated = true;
-                            }
-                         }
-                        else {
-                            qualityUpdateTimer = getMonotonicTimeInMs() + qualityUpdateTimeout;
-                        }
-                    }
-
-                }
-
-                updateConnectionStatus(ConnectionStatus::NOT_CONNECTED);
-
-                if (Hal_getTimeInMs() > backupConnectionStartTime)
-                {
-                    Iec104Utility::log_info("%s Activating backup connections", beforeLog.c_str());
-                    /* Connect all disconnected connections */
-                    for (auto clientConnection : m_connections)
-                    {
-                        if (clientConnection->Disconnected()) {
-                            clientConnection->Connect();
-                        }
-                    }
-
-                    backupConnectionStartTime = Hal_getTimeInMs() + BACKUP_CONNECTION_TIMEOUT;
-                }
-            }
-        }
-        else {
-            backupConnectionStartTime = Hal_getTimeInMs() + BACKUP_CONNECTION_TIMEOUT;
-
-            if (m_activeConnection->Connected() == false)
-            {
-                Iec104Utility::log_info("%s Active connection lost", beforeLog.c_str());
-                m_activeConnection = nullptr;
-            }
-            else {
-                /* Check for connection that should be disconnected */
-
+                /* activate the first open connection */
                 for (auto clientConnection : m_connections)
                 {
-                    if (clientConnection != m_activeConnection) {
-                        if (clientConnection->Connected() && !clientConnection->Autostart()) {
-                            Iec104Utility::log_info("%s Disconnecting unnecessary connection", beforeLog.c_str());
-                            clientConnection->Disonnect();
+                    if (clientConnection->Connected()) {
+
+                        backupConnectionStartTime = Hal_getTimeInMs() + BACKUP_CONNECTION_TIMEOUT;
+
+                        foundOpenConnections = true;
+
+                        clientConnection->Activate();
+
+                        m_activeConnection = clientConnection;
+
+                        updateConnectionStatus(ConnectionStatus::STARTED);
+
+                        Iec104Utility::log_info("%s Activated connection", beforeLog.c_str());
+                        break;
+                    }
+                }
+
+                if (foundOpenConnections) {
+                    firstConnected = true;
+                    qualityUpdateTimer = 0;
+                    qualityUpdated = false;
+                }
+                else {
+
+                    if (firstConnected) {
+
+                        if (qualityUpdated == false) {
+                            if (qualityUpdateTimer != 0) {
+                                if (getMonotonicTimeInMs() > qualityUpdateTimer) {
+                                    Iec104Utility::log_info("%s Sending all data objects with non topical quality after connection lost for %dms",
+                                                            beforeLog.c_str(), qualityUpdateTimer);
+                                    updateQualityForAllDataObjects(IEC60870_QUALITY_NON_TOPICAL);
+                                    qualityUpdated = true;
+                                }
+                            }
+                            else {
+                                qualityUpdateTimer = getMonotonicTimeInMs() + qualityUpdateTimeout;
+                            }
+                        }
+
+                    }
+
+                    updateConnectionStatus(ConnectionStatus::NOT_CONNECTED);
+
+                    if (Hal_getTimeInMs() > backupConnectionStartTime)
+                    {
+                        Iec104Utility::log_info("%s Activating backup connections", beforeLog.c_str());
+                        /* Connect all disconnected connections */
+                        for (auto clientConnection : m_connections)
+                        {
+                            if (clientConnection->Disconnected()) {
+                                clientConnection->Connect();
+                            }
+                        }
+
+                        backupConnectionStartTime = Hal_getTimeInMs() + BACKUP_CONNECTION_TIMEOUT;
+                    }
+                }
+            }
+            else {
+                backupConnectionStartTime = Hal_getTimeInMs() + BACKUP_CONNECTION_TIMEOUT;
+
+                if (m_activeConnection->Connected() == false)
+                {
+                    Iec104Utility::log_info("%s Active connection lost", beforeLog.c_str());
+                    m_activeConnection = nullptr;
+                }
+                else {
+                    /* Check for connection that should be disconnected */
+
+                    for (auto clientConnection : m_connections)
+                    {
+                        if (clientConnection != m_activeConnection) {
+                            if (clientConnection->Connected() && !clientConnection->Autostart()) {
+                                Iec104Utility::log_info("%s Disconnecting unnecessary connection", beforeLog.c_str());
+                                clientConnection->Disonnect();
+                            }
                         }
                     }
                 }
             }
         }
-
-        m_activeConnectionMtx.unlock();
 
         checkOutstandingCommandTimeouts();
 
@@ -1366,10 +1359,8 @@ IEC104Client::_monitoringThread()
 
     Iec104Utility::log_info("%s Terminating all client connections", beforeLog.c_str());
     m_connections.clear();
-    m_activeConnectionMtx.lock();
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
     m_activeConnection = nullptr;
-    m_activeConnectionMtx.unlock();
-
     updateConnectionStatus(ConnectionStatus::NOT_CONNECTED);
 }
 
@@ -1379,14 +1370,12 @@ IEC104Client::sendInterrogationCommand(int ca)
     // send interrogation request over active connection
     bool success = false;
 
-    m_activeConnectionMtx.lock();
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
 
     if (m_activeConnection != nullptr)
     {
         success = m_activeConnection->sendInterrogationCommand(ca);
     }
-
-    m_activeConnectionMtx.unlock();
 
     return success;
 }
@@ -1398,7 +1387,7 @@ std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::addOutstandingCo
 
     // check if number of allowed parallel commands is not exceeded.
 
-    m_outstandingCommandsMtx.lock();
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
 
     int cmdParrallel = m_config->CmdParallel();
     int typeId = withTime ? typeIdWithTimestamp : typeIdNoTimestamp;
@@ -1408,7 +1397,6 @@ std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::addOutstandingCo
             command = std::make_shared<OutstandingCommand>(typeId, ca, ioa, m_activeConnection);
         }
         else {
-            m_outstandingCommandsMtx.unlock();
             Iec104Utility::log_warn("%s Maximum number of parallel command exceeded (%d) -> ignore command with typeId=%s, CA=%d, IOA=%d",
                                     beforeLog.c_str(), cmdParrallel, IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), ca, ioa);
             return nullptr;
@@ -1418,10 +1406,9 @@ std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::addOutstandingCo
         command = std::make_shared<OutstandingCommand>(typeId, ca, ioa, m_activeConnection);
     }
 
-    if (command)
+    if (command) {
         m_outstandingCommands.push_back(command);
-
-    m_outstandingCommandsMtx.unlock();
+    }
 
     return command;
 }
@@ -1446,7 +1433,7 @@ IEC104Client::sendSingleCommand(int ca, int ioa, bool value, bool withTime, bool
     if (command == nullptr)
         return false; //LCOV_EXCL_LINE
 
-    m_activeConnectionMtx.lock();
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
 
     if (m_activeConnection != nullptr)
     {
@@ -1456,8 +1443,6 @@ IEC104Client::sendSingleCommand(int ca, int ioa, bool value, bool withTime, bool
         Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
                                 beforeLog.c_str(), cmdName.c_str(), ca, ioa);
     }
-
-    m_activeConnectionMtx.unlock();
 
     if (!success) removeOutstandingCommand(command);
 
@@ -1484,7 +1469,7 @@ IEC104Client::sendDoubleCommand(int ca, int ioa, int value, bool withTime, bool 
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    m_activeConnectionMtx.lock();
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
 
     if (m_activeConnection != nullptr)
     {
@@ -1494,8 +1479,6 @@ IEC104Client::sendDoubleCommand(int ca, int ioa, int value, bool withTime, bool 
         Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
                                 beforeLog.c_str(), cmdName.c_str(), ca, ioa);
     }
-
-    m_activeConnectionMtx.unlock();
 
     if (!success) removeOutstandingCommand(command);
 
@@ -1522,7 +1505,7 @@ IEC104Client::sendStepCommand(int ca, int ioa, int value, bool withTime, bool se
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    m_activeConnectionMtx.lock();
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
 
     if (m_activeConnection != nullptr)
     {
@@ -1532,8 +1515,6 @@ IEC104Client::sendStepCommand(int ca, int ioa, int value, bool withTime, bool se
         Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
                                 beforeLog.c_str(), cmdName.c_str(), ca, ioa);
     }
-
-    m_activeConnectionMtx.unlock();
 
     if (!success) removeOutstandingCommand(command);
 
@@ -1560,7 +1541,7 @@ IEC104Client::sendSetpointNormalized(int ca, int ioa, float value, bool withTime
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    m_activeConnectionMtx.lock();
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
 
     if (m_activeConnection != nullptr)
     {
@@ -1570,8 +1551,6 @@ IEC104Client::sendSetpointNormalized(int ca, int ioa, float value, bool withTime
         Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
                                 beforeLog.c_str(), cmdName.c_str(), ca, ioa);
     }
-
-    m_activeConnectionMtx.unlock();
 
     if (!success) removeOutstandingCommand(command);
 
@@ -1598,7 +1577,7 @@ IEC104Client::sendSetpointScaled(int ca, int ioa, int value, bool withTime, long
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    m_activeConnectionMtx.lock();
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
 
     if (m_activeConnection != nullptr)
     {
@@ -1608,8 +1587,6 @@ IEC104Client::sendSetpointScaled(int ca, int ioa, int value, bool withTime, long
         Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
                                 beforeLog.c_str(), cmdName.c_str(), ca, ioa);
     }
-
-    m_activeConnectionMtx.unlock();
 
     if (!success) removeOutstandingCommand(command);
 
@@ -1636,7 +1613,7 @@ IEC104Client::sendSetpointShort(int ca, int ioa, float value, bool withTime, lon
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    m_activeConnectionMtx.lock();
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
 
     if (m_activeConnection != nullptr)
     {
@@ -1646,8 +1623,6 @@ IEC104Client::sendSetpointShort(int ca, int ioa, float value, bool withTime, lon
         Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
                                 beforeLog.c_str(), cmdName.c_str(), ca, ioa);
     }
-
-    m_activeConnectionMtx.unlock();
 
     if (!success) removeOutstandingCommand(command);
 
