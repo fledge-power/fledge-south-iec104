@@ -11,6 +11,7 @@
  * Author: Michael Zillgith
  *
  */
+#include <memory>
 
 #include <plugin_api.h>
 #include <reading.h>
@@ -45,6 +46,8 @@ public:
     inline const std::string& getServiceName() const { return m_service_name; }
     inline void setServiceName(const std::string& serviceName) { m_service_name = serviceName; }
 
+    inline std::shared_ptr<IEC104Client> getClient() const { return m_client; }
+
 private:
 
     bool m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime);
@@ -54,7 +57,7 @@ private:
     bool m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime);
     bool m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime);
 
-    IEC104ClientConfig* m_config = nullptr;
+    std::shared_ptr<IEC104ClientConfig> m_config;
 
     std::string m_asset;
 
@@ -64,7 +67,7 @@ protected:
 private:
     INGEST_CB m_ingest = nullptr;  // Callback function used to send data to south service
     void* m_data = nullptr;        // Ingest function data
-    IEC104Client* m_client = nullptr;
+    std::shared_ptr<IEC104Client> m_client;
     std::string m_service_name;    // Service name used to generate audits
 };
 

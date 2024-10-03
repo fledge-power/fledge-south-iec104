@@ -16,6 +16,7 @@
 #include <thread>
 #include <vector>
 #include <string>
+#include <memory>
 
 #include <lib60870/cs104_connection.h>
 
@@ -31,7 +32,7 @@ class IEC104Client
 {
 public:
 
-    explicit IEC104Client(IEC104* iec104, IEC104ClientConfig* config);
+    explicit IEC104Client(IEC104* iec104, std::shared_ptr<IEC104ClientConfig> config);
 
     ~IEC104Client();
 
@@ -90,35 +91,35 @@ public:
 
 private:
 
-    std::vector<DataExchangeDefinition*> m_listOfStationGroupDatapoints;
+    std::vector<std::shared_ptr<DataExchangeDefinition>> m_listOfStationGroupDatapoints;
 
-    IEC104ClientConfig* m_config = nullptr;
+    std::shared_ptr<IEC104ClientConfig> m_config;
 
-    Datapoint* m_createCnxLossStatus(DataExchangeDefinition* dp, bool value, uint64_t timestamp);
+    Datapoint* m_createCnxLossStatus(std::shared_ptr<DataExchangeDefinition> dp, bool value, uint64_t timestamp);
 
     class OutstandingCommand {
     public:
 
-        explicit OutstandingCommand(int typeId, int ca, int ioa, IEC104ClientConnection* con);
+        explicit OutstandingCommand(int typeId, int ca, int ioa, std::shared_ptr<IEC104ClientConnection> con);
 
         int typeId = 0;
         int ca = 0;
         int ioa = 0;
-        IEC104ClientConnection* clientCon = nullptr;
+        std::shared_ptr<IEC104ClientConnection> clientCon;
         bool actConReceived = false;
         uint64_t timeout = 0;
     };
 
-    std::vector<OutstandingCommand*> m_outstandingCommands; // list of outstanding commands
+    std::vector<std::shared_ptr<OutstandingCommand>> m_outstandingCommands; // list of outstanding commands
     std::mutex m_outstandingCommandsMtx; // protect access to list of outstanding commands
 
-    OutstandingCommand* checkForOutstandingCommand(int typeId, int ca, int ioa, IEC104ClientConnection* connection);
+    std::shared_ptr<OutstandingCommand> checkForOutstandingCommand(int typeId, int ca, int ioa, IEC104ClientConnection* connection);
 
     void checkOutstandingCommandTimeouts();
 
-    void removeOutstandingCommand(OutstandingCommand* command);
+    void removeOutstandingCommand(std::shared_ptr<OutstandingCommand> command);
 
-    OutstandingCommand* addOutstandingCommandAndCheckLimit(int ca, int ioa, bool withTime, int typeIdWithTimestamp, int typeIdNoTimestamp);
+    std::shared_ptr<OutstandingCommand> addOutstandingCommandAndCheckLimit(int ca, int ioa, bool withTime, int typeIdWithTimestamp, int typeIdNoTimestamp);
 
     enum class ConnectionStatus
     {
@@ -134,33 +135,30 @@ private:
 
     void sendSouthMonitoringEvent(bool connxStatus, bool giStatus);
 
-    std::vector<IEC104ClientConnection*> m_connections = std::vector<IEC104ClientConnection*>();
+    std::vector<std::shared_ptr<IEC104ClientConnection>> m_connections;
 
-    IEC104ClientConnection* m_activeConnection = nullptr;
+    std::shared_ptr<IEC104ClientConnection> m_activeConnection;
     std::mutex m_activeConnectionMtx;
 
     bool m_started = false;
 
-    std::thread* m_monitoringThread = nullptr;
+    std::shared_ptr<std::thread> m_monitoringThread;
     void _monitoringThread();
 
     int broadcastCA(); // TODO remove?
 
-    void prepareParameters(CS104_Connection connection, IEC104ClientRedGroup* redgroup, RedGroupCon* redgroupCon);
+    void prepareParameters(CS104_Connection connection, std::shared_ptr<IEC104ClientRedGroup> redgroup, std::shared_ptr<RedGroupCon> redgroupCon);
     bool prepareConnections();
     void performPeriodicTasks();
-
-    static void m_connectionHandler(void* parameter, CS104_Connection connection,
-                                 CS104_ConnectionEvent event);
 
     template <class T>
     static Datapoint* m_createDatapoint(const std::string& dataname, const T value);
 
-    Datapoint* m_createQualityUpdateForDataObject(DataExchangeDefinition* dataDefinition, QualityDescriptor* qd, CP56Time2a ts);
+    Datapoint* m_createQualityUpdateForDataObject(std::shared_ptr<DataExchangeDefinition> dataDefinition, QualityDescriptor* qd, CP56Time2a ts);
 
     void updateQualityForAllDataObjects(QualityDescriptor qd);
 
-    void removeFromListOfDatapoints(std::vector<DataExchangeDefinition*>& list, DataExchangeDefinition* toRemove);
+    void removeFromListOfDatapoints(std::vector<std::shared_ptr<DataExchangeDefinition>>& list, std::shared_ptr<DataExchangeDefinition> toRemove);
 
     template <class T>
     Datapoint* m_createDataObject(CS101_ASDU asdu, int64_t ioa, const std::string& dataname, const T value,
@@ -168,7 +166,7 @@ private:
 
     typedef void (*IEC104_ASDUHandler)(std::vector<Datapoint*>& datapoints,
                                     std::string& label,
-                                    IEC104Client* mclient, unsigned int ca,
+                                    std::shared_ptr<IEC104Client> mclient, unsigned int ca,
                                     CS101_ASDU asdu, InformationObject io,
                                     uint64_t ioa);
 
@@ -237,37 +235,37 @@ private:
                                 std::string& label,
                                 unsigned int ca, CS101_ASDU asdu,
                                 InformationObject io, uint64_t ioa,
-                                OutstandingCommand* outstandingCommand);
+                                std::shared_ptr<OutstandingCommand> outstandingCommand);
 
     void handle_C_DC_NA_1(std::vector<Datapoint*>& datapoints,
                                 std::string& label,
                                 unsigned int ca, CS101_ASDU asdu,
                                 InformationObject io, uint64_t ioa,
-                                OutstandingCommand* outstandingCommand);
+                                std::shared_ptr<OutstandingCommand> outstandingCommand);
 
     void handle_C_RC_NA_1(std::vector<Datapoint*>& datapoints,
                                 std::string& label,
                                 unsigned int ca, CS101_ASDU asdu,
                                 InformationObject io, uint64_t ioa,
-                                OutstandingCommand* outstandingCommand);
+                                std::shared_ptr<OutstandingCommand> outstandingCommand);
 
     void handle_C_SE_NA_1(std::vector<Datapoint*>& datapoints,
                                 std::string& label,
                                 unsigned int ca, CS101_ASDU asdu,
                                 InformationObject io, uint64_t ioa,
-                                OutstandingCommand* outstandingCommand);
+                                std::shared_ptr<OutstandingCommand> outstandingCommand);
 
     void handle_C_SE_NB_1(std::vector<Datapoint*>& datapoints,
                                 std::string& label,
                                 unsigned int ca, CS101_ASDU asdu,
                                 InformationObject io, uint64_t ioa,
-                                OutstandingCommand* outstandingCommand);
+                                std::shared_ptr<OutstandingCommand> outstandingCommand);
 
     void handle_C_SE_NC_1(std::vector<Datapoint*>& datapoints,
                                 std::string& label,
                                 unsigned int ca, CS101_ASDU asdu,
                                 InformationObject io, uint64_t ioa,
-                                OutstandingCommand* outstandingCommand);
+                                std::shared_ptr<OutstandingCommand> outstandingCommand);
 
     // Format 2019-01-01 10:00:00.123456+08:00
     static std::string CP56Time2aToString(const CP56Time2a ts)

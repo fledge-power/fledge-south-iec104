@@ -27,17 +27,7 @@ using namespace rapidjson;
 using namespace std;
 
 IEC104ClientConfig::~IEC104ClientConfig()
-{
-    for (auto const &element : m_exchangeDefinitions) {
-        for (auto const &elem2 : element.second) {
-            delete elem2.second;
-        }
-    }
-
-    for (IEC104ClientRedGroup* redGroup : m_redundancyGroups) {
-        delete redGroup;
-    }
-}
+{}
 
 // Map of all existing ASDU types
 static std::map<std::string, int> mapAsduTypeId = {
@@ -502,25 +492,22 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                     continue;
                 }
                 
-                char* redGroupName = nullptr;
-
+                std::string redGroupName;
+                bool hasName = false;
                 if (redGroup.HasMember("rg_name")) {
                     if (redGroup["rg_name"].IsString()) {
-                        string rgName = redGroup["rg_name"].GetString();
-
-                        redGroupName = strdup(rgName.c_str());
+                        redGroupName = redGroup["rg_name"].GetString();
+                        hasName = true;
                     }
                 }
-                if (redGroupName == nullptr) {
+                if (!hasName) {
                     Iec104Utility::log_error("%s rg_name does not exist or is not a string -> ignore", beforeLog.c_str());
                     continue;
                 }
 
-                IEC104ClientRedGroup* redundancyGroup = new IEC104ClientRedGroup(redGroupName, m_redundancyGroups.size());
+                std::shared_ptr<IEC104ClientRedGroup> redundancyGroup = std::make_shared<IEC104ClientRedGroup>(redGroupName, static_cast<int>(m_redundancyGroups.size()));
 
-                Iec104Utility::log_debug("%s Adding red group with name: %s", beforeLog.c_str(), redGroupName);
-
-                free(redGroupName);
+                Iec104Utility::log_debug("%s Adding red group with name: %s", beforeLog.c_str(), redGroupName.c_str());
 
                 if (redGroup.HasMember("connections") && redGroup["connections"].IsArray()) {
                     for (const Value& con : redGroup["connections"].GetArray()) {
@@ -539,13 +526,13 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                                 bool start = true;
                                 bool conn = true;
                                 
-                                string* clientIp = nullptr;
+                                string clientIp;
 
                                 if (con.HasMember("clt_ip") && con["clt_ip"].IsString()) {
                                     string cltIpStr = con["clt_ip"].GetString();
 
                                     if (isValidIPAddress(cltIpStr)) {
-                                        clientIp = new string(cltIpStr);
+                                        clientIp = cltIpStr;
                                     }
                                     else {
                                         Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client",
@@ -595,7 +582,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                                     }
                                 }
 
-                                RedGroupCon* connection = new RedGroupCon(srvIp, tcpPort, conn, start, clientIp);
+                                std::shared_ptr<RedGroupCon> connection = std::make_shared<RedGroupCon>(srvIp, tcpPort, conn, start, clientIp);
 
                                 redundancyGroup->AddConnection(connection);
 
@@ -951,14 +938,6 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
 
 void IEC104ClientConfig::deleteExchangeDefinitions()
 {
-    for (auto const& exchangeDefintions : m_exchangeDefinitions) {
-        for (auto const& dpPair : exchangeDefintions.second) {
-            DataExchangeDefinition* dp = dpPair.second;
-
-            delete dp;
-        }
-    }
-
     m_exchangeDefinitions.clear();
 }
 
@@ -1070,12 +1049,12 @@ static vector<string> tokenizeString(string& str, string delimiter)
     return tokens;
 }
 
-DataExchangeDefinition*
+std::shared_ptr<DataExchangeDefinition>
 IEC104ClientConfig::getExchangeDefinitionByLabel(std::string& label)
 {
     for (auto const& exchangeDefintions : ExchangeDefinition()) {
         for (auto const& dpPair : exchangeDefintions.second) {
-            DataExchangeDefinition* dp = dpPair.second;
+            std::shared_ptr<DataExchangeDefinition> dp = dpPair.second;
 
             if (dp) {
                 if (dp->label == label) {
@@ -1088,12 +1067,12 @@ IEC104ClientConfig::getExchangeDefinitionByLabel(std::string& label)
     return nullptr;
 }
 
-DataExchangeDefinition*
+std::shared_ptr<DataExchangeDefinition>
 IEC104ClientConfig::getCnxLossStatusDatapoint()
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::getCnxLossStatusDatapoint -";
     if (m_sendCnxLossStatus) {
-        DataExchangeDefinition* cnxLossStatusDp = getExchangeDefinitionByLabel(m_cnxLossStatusId);
+        auto cnxLossStatusDp = getExchangeDefinitionByLabel(m_cnxLossStatusId);
 
         if (cnxLossStatusDp != nullptr) {
             if ((cnxLossStatusDp->typeId == M_SP_NA_1) || (cnxLossStatusDp->typeId == M_SP_TB_1)) {
@@ -1242,7 +1221,7 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                         return;
                     }
 
-                    DataExchangeDefinition* def = new DataExchangeDefinition();
+                    std::shared_ptr<DataExchangeDefinition> def = std::make_shared<DataExchangeDefinition>();
 
                     if (def) {
                         def->ca = ca;

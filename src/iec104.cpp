@@ -24,25 +24,19 @@
 using namespace std;
 
 /** Constructor for the iec104 plugin */
-IEC104::IEC104() : m_client(nullptr)
+IEC104::IEC104()
 {
-    m_config = new IEC104ClientConfig();
+    m_config = std::make_shared<IEC104ClientConfig>();
 }
 
 IEC104::~IEC104()
-{
-    delete m_config;
-}
+{}
 
 void IEC104::setJsonConfig(const std::string& stack_configuration,
                            const std::string& msg_configuration,
                            const std::string& tls_configuration)
 {
-    if (m_config != nullptr) {
-        delete m_config;
-    }
-
-    m_config = new IEC104ClientConfig();
+    m_config = std::make_shared<IEC104ClientConfig>();
 
     m_config->importProtocolConfig(stack_configuration);
     m_config->importExchangeConfig(msg_configuration);
@@ -74,9 +68,10 @@ void IEC104::start()
     }
     */
 
-    m_client = new IEC104Client(this, m_config);
+    m_client = std::make_shared<IEC104Client>(this, m_config);
 
     m_client->start();
+    Iec104Utility::log_debug("%s Started client %p", beforeLog.c_str(), (void*)m_client.get());
 }
 
 /** Disconnect from the iec104 servers */
@@ -85,8 +80,6 @@ void IEC104::stop()
     if (m_client != nullptr)
     {
         m_client->stop();
-
-        delete m_client;
         m_client = nullptr;
     }
 }

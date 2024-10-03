@@ -28,14 +28,10 @@ static uint64_t getMonotonicTimeInMs()
 }
 
 IEC104ClientConnection::IEC104ClientConnection(
-    IEC104Client* client, IEC104ClientRedGroup* redGroup, RedGroupCon* connection, IEC104ClientConfig* config, const std::string& pathLetter)
+    std::shared_ptr<IEC104Client> client, std::shared_ptr<IEC104ClientRedGroup> redGroup, std::shared_ptr<RedGroupCon> connection,
+    std::shared_ptr<IEC104ClientConfig> config, const std::string& pathLetter):
+    m_config(config), m_redGroup(redGroup), m_redGroupConnection(connection), m_client(client), m_path_letter(pathLetter)
 {
-    m_config = config;
-    m_redGroup = redGroup;
-    m_redGroupConnection = connection;
-    m_client = client;
-    m_path_letter = pathLetter;
-
     // Send initial path connection status audit
     m_sendConnectionStatusAudit("disconnected");
 }
@@ -1041,8 +1037,8 @@ IEC104ClientConnection::prepareConnection()
         if (m_connection) {
             prepareParameters();
 
-            if (m_redGroupConnection->ClientIP() != nullptr) {
-                CS104_Connection_setLocalAddress(m_connection, m_redGroupConnection->ClientIP()->c_str(), 0);
+            if (!m_redGroupConnection->ClientIP().empty()) {
+                CS104_Connection_setLocalAddress(m_connection, m_redGroupConnection->ClientIP().c_str(), 0);
             }
 
             CS104_Connection_setASDUReceivedHandler(m_connection, m_asduReceivedHandler, this);
@@ -1073,7 +1069,7 @@ IEC104ClientConnection::Start()
 
         m_started = true;
 
-        m_conThread = new std::thread(&IEC104ClientConnection::_conThread, this);
+        m_conThread = std::make_shared<std::thread>(&IEC104ClientConnection::_conThread, this);
     }
     Iec104Utility::log_info("%s Connection started", beforeLog.c_str());
 }
@@ -1120,7 +1116,6 @@ IEC104ClientConnection::Stop()
         if (m_conThread != nullptr)
         {
             m_conThread->join();
-            delete m_conThread;
             m_conThread = nullptr;
         }
     }

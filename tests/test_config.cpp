@@ -1733,7 +1733,7 @@ protected:
     static bool operation(const std::string& operation, int count, PLUGIN_PARAMETER** params)
     {
         printf("Entra aqui");
-        IEC104ClientConfig* config = new IEC104ClientConfig();
+        std::shared_ptr<IEC104ClientConfig> config = std::make_shared<IEC104ClientConfig>();
         std::string type = params[0]->value;
 
         int typeID = config->getTypeIdFromString(type);
@@ -1741,7 +1741,7 @@ protected:
         return m_commandOperation(count, params, typeID, config);
     }
 
-    static bool m_commandOperation(int count, PLUGIN_PARAMETER** params, int typeId, IEC104ClientConfig* config)
+    static bool m_commandOperation(int count, PLUGIN_PARAMETER** params, int typeId, std::shared_ptr<IEC104ClientConfig> config)
     {
         if (count > 8) {
             // common address of the asdu
@@ -1773,7 +1773,7 @@ protected:
         }
     }
 
-    static bool checkTypeCommand(int ca, int ioa, bool value, bool select, long time, int typeId, IEC104ClientConfig* config)
+    static bool checkTypeCommand(int ca, int ioa, bool value, bool select, long time, int typeId, std::shared_ptr<IEC104ClientConfig> config)
     {
         // check if the data point is in the exchange configuration
         if (config->checkExchangeDataLayer(typeId, ca, ioa) == nullptr) {
