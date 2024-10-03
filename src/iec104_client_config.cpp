@@ -699,7 +699,8 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
     m_protocolConfigComplete = true;
 }
 
-void IEC104ClientConfig::importRedGroup(const Value& redGroup) {
+void IEC104ClientConfig::importRedGroup(const Value& redGroup)
+{
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importRedGroup -";
     
     if (!redGroup.IsObject()) {
@@ -726,93 +727,7 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup) {
 
     if (redGroup.HasMember("connections") && redGroup["connections"].IsArray()) {
         for (const Value& con : redGroup["connections"].GetArray()) {
-            if(!con.IsObject()) {
-                Iec104Utility::log_error("%s  connections element is not an object -> ignore", beforeLog.c_str());
-                continue;
-            }
-            if (con.HasMember("srv_ip") && con["srv_ip"].IsString()) {
-                string srvIp = con["srv_ip"].GetString();
-
-                if (isValidIPAddress(srvIp)) {
-
-                    Iec104Utility::log_debug("%s  add to group: %s", beforeLog.c_str(), srvIp.c_str());
-
-                    int tcpPort = 2404;
-                    bool start = true;
-                    bool conn = true;
-                    
-                    string clientIp;
-
-                    if (con.HasMember("clt_ip") && con["clt_ip"].IsString()) {
-                        string cltIpStr = con["clt_ip"].GetString();
-
-                        if (isValidIPAddress(cltIpStr)) {
-                            clientIp = cltIpStr;
-                        }
-                        else {
-                            Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client",
-                                                    beforeLog.c_str(), cltIpStr.c_str());
-                        }
-                    }
-                    else {
-                        Iec104Utility::log_warn("%s  clt_ip does not exist or is not a string -> ignore client",
-                                                beforeLog.c_str());
-                    }
-
-                    if (con.HasMember("port")) {
-                        if (con["port"].IsInt()) {
-                            int tcpPortVal = con["port"].GetInt();
-
-                            if (tcpPortVal > 0 && tcpPortVal < 65636) {
-                                tcpPort = tcpPortVal;
-                            }
-                            else {
-                                Iec104Utility::log_error("%s  port value out of range [1..65635]: %d -> using default port (%d)",
-                                                        beforeLog.c_str(), tcpPortVal, tcpPort);
-                            }
-                        }
-                        else {
-                            Iec104Utility::log_warn("%s  port is not an integer -> using default port (%d)",
-                                                    beforeLog.c_str(), tcpPort);
-                        }
-                    }
-
-                    if (con.HasMember("conn")) {
-                        if (con["conn"].IsBool()) {
-                            conn = con["conn"].GetBool();
-                        }
-                        else {
-                            Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%d)",
-                                                    beforeLog.c_str(), conn?"true":"false");
-                        }
-                    }
-
-                    if (con.HasMember("start")) {
-                        if (con["start"].IsBool()) {
-                            start = con["start"].GetBool();
-                        }
-                        else {
-                            Iec104Utility::log_warn("%s  start is not a bool -> using default start (%d)",
-                                                    beforeLog.c_str(), start?"true":"false");
-                        }
-                    }
-
-                    auto connection = std::make_shared<RedGroupCon>(srvIp, tcpPort, conn, start, clientIp);
-
-                    redundancyGroup->AddConnection(connection);
-
-                }
-                else {
-                    Iec104Utility::log_error("%s  srv_ip %s is not a valid IP address -> ignore", beforeLog.c_str(),
-                                            srvIp.c_str());
-                    continue;
-                }
-            }
-            else {
-                Iec104Utility::log_error("%s  srv_ip does not exist or is not a string -> ignore",
-                                        beforeLog.c_str());
-                continue;
-            }
+            importRedGroupCon(con, redundancyGroup);
         }
     }
     else {
@@ -938,6 +853,93 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup) {
     }
 
     m_redundancyGroups.push_back(redundancyGroup);
+}
+
+void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC104ClientRedGroup> redundancyGroup)
+{
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importRedGroupCon -";
+
+    if(!con.IsObject()) {
+        Iec104Utility::log_error("%s  connections element is not an object -> ignore", beforeLog.c_str());
+        return;
+    }
+
+    if (!con.HasMember("srv_ip") || !con["srv_ip"].IsString()) {
+        Iec104Utility::log_error("%s  srv_ip does not exist or is not a string -> ignore", beforeLog.c_str());
+        return;
+    }
+    string srvIp = con["srv_ip"].GetString();
+
+    if (!isValidIPAddress(srvIp)) {
+        Iec104Utility::log_error("%s  srv_ip %s is not a valid IP address -> ignore", beforeLog.c_str(), srvIp.c_str());
+        return;
+    }
+
+    Iec104Utility::log_debug("%s  add to group: %s", beforeLog.c_str(), srvIp.c_str());
+
+    int tcpPort = 2404;
+    bool start = true;
+    bool conn = true;
+    
+    string clientIp;
+
+    if (con.HasMember("clt_ip") && con["clt_ip"].IsString()) {
+        string cltIpStr = con["clt_ip"].GetString();
+
+        if (isValidIPAddress(cltIpStr)) {
+            clientIp = cltIpStr;
+        }
+        else {
+            Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client",
+                                    beforeLog.c_str(), cltIpStr.c_str());
+        }
+    }
+    else {
+        Iec104Utility::log_warn("%s  clt_ip does not exist or is not a string -> ignore client",
+                                beforeLog.c_str());
+    }
+
+    if (con.HasMember("port")) {
+        if (con["port"].IsInt()) {
+            int tcpPortVal = con["port"].GetInt();
+
+            if (tcpPortVal > 0 && tcpPortVal < 65636) {
+                tcpPort = tcpPortVal;
+            }
+            else {
+                Iec104Utility::log_error("%s  port value out of range [1..65635]: %d -> using default port (%d)",
+                                        beforeLog.c_str(), tcpPortVal, tcpPort);
+            }
+        }
+        else {
+            Iec104Utility::log_warn("%s  port is not an integer -> using default port (%d)",
+                                    beforeLog.c_str(), tcpPort);
+        }
+    }
+
+    if (con.HasMember("conn")) {
+        if (con["conn"].IsBool()) {
+            conn = con["conn"].GetBool();
+        }
+        else {
+            Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%d)",
+                                    beforeLog.c_str(), conn?"true":"false");
+        }
+    }
+
+    if (con.HasMember("start")) {
+        if (con["start"].IsBool()) {
+            start = con["start"].GetBool();
+        }
+        else {
+            Iec104Utility::log_warn("%s  start is not a bool -> using default start (%d)",
+                                    beforeLog.c_str(), start?"true":"false");
+        }
+    }
+
+    auto connection = std::make_shared<RedGroupCon>(srvIp, tcpPort, conn, start, clientIp);
+
+    redundancyGroup->AddConnection(connection);
 }
 
 void IEC104ClientConfig::deleteExchangeDefinitions()
