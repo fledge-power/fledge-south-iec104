@@ -315,7 +315,7 @@ extern "C"
     {
         if (!handle) throw exception();
 
-        auto *iec104 = reinterpret_cast<IEC104 *>(handle);
+        const auto *iec104 = reinterpret_cast<IEC104 *>(handle);
 
         return iec104->operation(operation, count, params);
     }

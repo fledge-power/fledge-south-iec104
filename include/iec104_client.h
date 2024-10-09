@@ -58,7 +58,7 @@ public:
 
     bool sendConnectionStatus();
 
-    bool handleASDU(IEC104ClientConnection* connection, CS101_ASDU asdu);
+    bool handleASDU(const IEC104ClientConnection* connection, CS101_ASDU asdu);
 
     void start();
 

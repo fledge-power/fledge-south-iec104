@@ -575,7 +575,7 @@ isInterrogationResponse(CS101_ASDU asdu)
 }
 
 bool
-IEC104Client::handleASDU(IEC104ClientConnection* connection, CS101_ASDU asdu)
+IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU asdu)
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handleASDU -";
     bool handledAsdu = true;
