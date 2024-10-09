@@ -27,7 +27,7 @@ public:
     typedef void (*INGEST_CB)(void*, Reading);
 
     IEC104();
-    ~IEC104();
+    ~IEC104() = default;
 
     void setAssetName(const std::string& asset) { m_asset = asset; }
     void setJsonConfig(const std::string& stack_configuration,
@@ -50,12 +50,12 @@ public:
 
 private:
 
-    bool m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime);
-    bool m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime);
-    bool m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime);
-    bool m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime);
-    bool m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime);
-    bool m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime);
+    bool m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const;
+    bool m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const;
+    bool m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const;
+    bool m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime) const;
+    bool m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime) const;
+    bool m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime) const;
 
     std::shared_ptr<IEC104ClientConfig> m_config;
 

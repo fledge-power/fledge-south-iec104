@@ -10,8 +10,7 @@ class RedGroupCon
 public:
 
     RedGroupCon(const std::string& serverIp, int tcpPort, bool conn, bool start, const std::string& clientIp);
-
-    ~RedGroupCon();
+    ~RedGroupCon() = default;
 
     const std::string& ServerIP() const {return m_serverIp;};
     const std::string& ClientIP() const {return m_clientIp;};
@@ -37,7 +36,7 @@ class IEC104ClientRedGroup
 public:
 
     IEC104ClientRedGroup(const std::string& name, int index): m_name(name), m_index(index) {};
-    ~IEC104ClientRedGroup();
+    ~IEC104ClientRedGroup() = default;
 
     const std::string& Name() const {return m_name;};
     int Index() const {return m_index;};

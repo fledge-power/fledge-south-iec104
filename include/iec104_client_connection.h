@@ -28,7 +28,7 @@ public:
     void Disonnect();
     void Connect();
 
-    bool Autostart();
+    bool Autostart() const;
     bool Disconnected() {return ((m_connecting == false) && (m_connected == false));};
     bool Connecting() {return m_connecting;};
     bool Connected() {return m_connected;};
@@ -76,7 +76,7 @@ private:
     bool m_connect = false; /* flag to indicate that the connection is to be establish */
     bool m_disconnect = false; /* flag to indicate that the connection has to be disconnected */
 
-    int broadcastCA();
+    int broadcastCA() const;
 
     std::mutex m_conLock;
     CS104_Connection m_connection = nullptr;

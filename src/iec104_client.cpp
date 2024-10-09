@@ -40,15 +40,6 @@ getMonotonicTimeInMs()
     return timeVal;
 }
 
-int
-IEC104Client::broadcastCA()
-{
-    if (m_config->CaSize() == 1)
-        return 0xff;
-
-    return 0xffff;
-}
-
 template <class T>
 Datapoint* IEC104Client::m_createDatapoint(const std::string& dataname, const T value)
 {

@@ -29,9 +29,6 @@ IEC104::IEC104()
     m_config = std::make_shared<IEC104ClientConfig>();
 }
 
-IEC104::~IEC104()
-{}
-
 void IEC104::setJsonConfig(const std::string& stack_configuration,
                            const std::string& msg_configuration,
                            const std::string& tls_configuration)
@@ -129,7 +126,7 @@ enum CommandParameters{
 };
 
 bool
-IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_singleCommandOperation -";
     if (count > 8) {
@@ -175,7 +172,7 @@ IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
 }
 
 bool
-IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_doubleCommandOperation -";
     if (count > 8) {
@@ -221,7 +218,7 @@ IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
 }
 
 bool
-IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_stepCommandOperation -";
     if (count > 8) {
@@ -267,7 +264,7 @@ IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTi
 }
 
 bool
-IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointNormalized -";
     if (count > 8) {
@@ -309,7 +306,7 @@ IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime
 }
 
 bool
-IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointScaled -";
     if (count > 8) {
@@ -351,7 +348,7 @@ IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime)
 }
 
 bool
-IEC104::m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointShort -";
     if (count > 8) {

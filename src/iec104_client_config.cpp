@@ -25,9 +25,6 @@
 using namespace rapidjson;
 using namespace std;
 
-IEC104ClientConfig::~IEC104ClientConfig()
-{}
-
 // Map of all existing ASDU types
 static std::map<std::string, int> mapAsduTypeId = {
     {"M_SP_TA_1", M_SP_TA_1},
@@ -372,7 +369,7 @@ std::string*
 IEC104ClientConfig::checkExchangeDataLayer(int typeId, int ca, int ioa)
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::checkExchangeDataLayer -";
-    auto& def = ExchangeDefinition()[ca][ioa];
+    const auto& def = ExchangeDefinition()[ca][ioa];
 
     if (def != nullptr) {
         // check if message type is matching the exchange definition

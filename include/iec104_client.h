@@ -145,8 +145,6 @@ private:
     std::shared_ptr<std::thread> m_monitoringThread;
     void _monitoringThread();
 
-    int broadcastCA(); // TODO remove?
-
     void prepareParameters(CS104_Connection connection, std::shared_ptr<IEC104ClientRedGroup> redgroup, std::shared_ptr<RedGroupCon> redgroupCon);
     bool prepareConnections();
     void performPeriodicTasks();

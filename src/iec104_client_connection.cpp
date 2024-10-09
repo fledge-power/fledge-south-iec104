@@ -66,7 +66,7 @@ IEC104ClientConnection::Activate()
 }
 
 int
-IEC104ClientConnection::broadcastCA()
+IEC104ClientConnection::broadcastCA() const
 {
     if (m_config->CaSize() == 1)
         return 0xff;
@@ -1064,7 +1064,7 @@ IEC104ClientConnection::Connect()
 }
 
 bool
-IEC104ClientConnection::Autostart() {
+IEC104ClientConnection::Autostart() const {
     return m_redGroupConnection->Start();
 }
 

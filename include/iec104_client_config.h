@@ -23,7 +23,7 @@ class IEC104ClientConfig
 public:
     IEC104ClientConfig() {m_exchangeDefinitions.clear();};
     //IEC104ClientConfig(const std::string& protocolConfig, const std::string& exchangeConfig);
-    ~IEC104ClientConfig();
+    ~IEC104ClientConfig() = default;
 
     int LogLevel() {return 1;};
 
