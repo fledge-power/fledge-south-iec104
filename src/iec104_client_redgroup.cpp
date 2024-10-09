@@ -2,7 +2,7 @@
 
 using namespace std;
 
-RedGroupCon::RedGroupCon(const string& serverIp, int tcpPort, bool conn, bool start, const string* clientIp)
+RedGroupCon::RedGroupCon(const string& serverIp, int tcpPort, bool conn, bool start, const string& clientIp)
 {
     m_serverIp = serverIp;
     m_tcpPort = tcpPort;
@@ -12,19 +12,13 @@ RedGroupCon::RedGroupCon(const string& serverIp, int tcpPort, bool conn, bool st
 }
 
 RedGroupCon::~RedGroupCon()
-{
-    if (m_clientIp != nullptr) delete m_clientIp;
-}
+{}
 
-void IEC104ClientRedGroup::AddConnection(RedGroupCon* con)
+void IEC104ClientRedGroup::AddConnection(std::shared_ptr<RedGroupCon> con)
 {
     con->SetConnId(m_connections.size());
     m_connections.push_back(con);
 }
 
 IEC104ClientRedGroup::~IEC104ClientRedGroup()
-{
-    for (RedGroupCon* con : m_connections) {
-        delete con;
-    }
-}
+{}

@@ -17,7 +17,8 @@ class IEC104ClientConnection
 {
 public:
 
-    IEC104ClientConnection(IEC104Client* client, IEC104ClientRedGroup* redGroup, RedGroupCon* connection, IEC104ClientConfig* config);
+    IEC104ClientConnection(std::shared_ptr<IEC104Client> client, std::shared_ptr<IEC104ClientRedGroup> redGroup,
+                            std::shared_ptr<RedGroupCon> connection, std::shared_ptr<IEC104ClientConfig> config, const std::string& pathLetter);
     ~IEC104ClientConnection();
 
     void Start();
@@ -50,6 +51,8 @@ private:
     void startNewInterrogationCycle();
     void closeConnection();
 
+    void m_sendConnectionStatusAudit(const std::string& auditType);
+
     typedef enum {
         CON_STATE_IDLE,
         CON_STATE_CONNECTING,
@@ -60,10 +63,10 @@ private:
         CON_STATE_FATAL_ERROR
     } ConState;
 
-    IEC104ClientConfig* m_config = nullptr;
-    IEC104ClientRedGroup* m_redGroup = nullptr;
-    RedGroupCon* m_redGroupConnection = nullptr;
-    IEC104Client* m_client = nullptr;
+    std::shared_ptr<IEC104ClientConfig> m_config;
+    std::shared_ptr<IEC104ClientRedGroup> m_redGroup;
+    std::shared_ptr<RedGroupCon> m_redGroupConnection;
+    std::shared_ptr<IEC104Client> m_client;
 
     /* global state information */
     bool m_connected = false; /* connection is in connected state */
@@ -100,10 +103,13 @@ private:
 
     uint64_t m_delayExpirationTime = 0;
 
-    std::thread* m_conThread = nullptr;
+    std::shared_ptr<std::thread> m_conThread;
     void _conThread();
 
     std::vector<int>::iterator m_listOfCA_it;
+
+    std::string m_path_letter; // A or B
+    std::string m_last_audit; // Used to avoid sending the same audit multiple times in a row
 
     static bool m_asduReceivedHandler(void* parameter, int address, CS101_ASDU asdu);
 
