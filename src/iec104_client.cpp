@@ -47,7 +47,7 @@ Datapoint* IEC104Client::m_createDatapoint(const std::string& dataname, const T 
     return new Datapoint(dataname, dp_value);
 }
 
-Datapoint* IEC104Client::m_createQualityUpdateForDataObject(std::shared_ptr<DataExchangeDefinition> dataDefinition, QualityDescriptor* qd, CP56Time2a ts)
+Datapoint* IEC104Client::m_createQualityUpdateForDataObject(std::shared_ptr<DataExchangeDefinition> dataDefinition, const QualityDescriptor* qd, CP56Time2a ts)
 {
     auto* attributes = new vector<Datapoint*>;
 
@@ -113,7 +113,7 @@ static bool isSupportedCommand(int typeId)
     return false;
 }
 
-std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::checkForOutstandingCommand(int typeId, int ca, int ioa, IEC104ClientConnection* connection)
+std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::checkForOutstandingCommand(int typeId, int ca, int ioa, const IEC104ClientConnection* connection)
 {
     std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx);
 

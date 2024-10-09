@@ -422,8 +422,7 @@ static std::pair<std::string, std::string> paramsToStr(PLUGIN_PARAMETER** params
  * @return true when the command has been accepted, false otherwise
  */
 bool
-IEC104::operation(const std::string& operation, int count,
-                       PLUGIN_PARAMETER** params)
+IEC104::operation(const std::string& operation, int count, PLUGIN_PARAMETER** params) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::operation -";
     if (m_client == nullptr) {

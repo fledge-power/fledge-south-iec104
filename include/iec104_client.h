@@ -113,7 +113,7 @@ private:
     std::vector<std::shared_ptr<OutstandingCommand>> m_outstandingCommands; // list of outstanding commands
     std::mutex m_outstandingCommandsMtx; // protect access to list of outstanding commands
 
-    std::shared_ptr<OutstandingCommand> checkForOutstandingCommand(int typeId, int ca, int ioa, IEC104ClientConnection* connection);
+    std::shared_ptr<OutstandingCommand> checkForOutstandingCommand(int typeId, int ca, int ioa, const IEC104ClientConnection* connection);
 
     void checkOutstandingCommandTimeouts();
 
@@ -152,7 +152,7 @@ private:
     template <class T>
     static Datapoint* m_createDatapoint(const std::string& dataname, const T value);
 
-    Datapoint* m_createQualityUpdateForDataObject(std::shared_ptr<DataExchangeDefinition> dataDefinition, QualityDescriptor* qd, CP56Time2a ts);
+    Datapoint* m_createQualityUpdateForDataObject(std::shared_ptr<DataExchangeDefinition> dataDefinition, const QualityDescriptor* qd, CP56Time2a ts);
 
     void updateQualityForAllDataObjects(QualityDescriptor qd);
 

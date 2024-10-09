@@ -40,8 +40,7 @@ public:
     // void ingest(Reading& reading);
     void ingest(std::string assetName, std::vector<Datapoint*>& points);
     void registerIngest(void* data, void (*cb)(void*, Reading));
-    bool operation(const std::string& operation, int count,
-                   PLUGIN_PARAMETER** params);
+    bool operation(const std::string& operation, int count, PLUGIN_PARAMETER** params) const;
 
     inline const std::string& getServiceName() const { return m_service_name; }
     inline void setServiceName(const std::string& serviceName) { m_service_name = serviceName; }
