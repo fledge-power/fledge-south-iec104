@@ -3,21 +3,21 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 class RedGroupCon
 {
 public:
 
-    RedGroupCon(const std::string& serverIp, int tcpPort, bool conn, bool start, const std::string* clientIp);
+    RedGroupCon(const std::string& serverIp, int tcpPort, bool conn, bool start, const std::string& clientIp);
+    ~RedGroupCon() = default;
 
-    ~RedGroupCon();
-
-    const std::string& ServerIP() {return m_serverIp;};
-    const std::string* ClientIP() {return m_clientIp;};
-    int TcpPort() {return m_tcpPort;};
-    bool Conn() {return m_conn;};
-    bool Start() {return m_start;};
-    long ConnId() {return m_connId;};
+    const std::string& ServerIP() const {return m_serverIp;};
+    const std::string& ClientIP() const {return m_clientIp;};
+    int TcpPort() const {return m_tcpPort;};
+    bool Conn() const {return m_conn;};
+    bool Start() const {return m_start;};
+    long ConnId() const {return m_connId;};
     void SetConnId(long connId) {m_connId = connId;};
 
 private:
@@ -25,7 +25,7 @@ private:
     /* configuration properties */
     long m_connId = -1;
     std::string m_serverIp;
-    const std::string* m_clientIp = nullptr;
+    std::string m_clientIp;
     int m_tcpPort = 2404;
     bool m_conn = true;
     bool m_start = true;
@@ -35,20 +35,21 @@ class IEC104ClientRedGroup
 {
 public:
 
-    IEC104ClientRedGroup(const std::string& name): m_name(name) {};
-    ~IEC104ClientRedGroup();
+    IEC104ClientRedGroup(const std::string& name, int index): m_name(name), m_index(index) {};
+    ~IEC104ClientRedGroup() = default;
 
-    const std::string& Name() {return m_name;};
-    bool UseTLS() {return m_useTls;};
+    const std::string& Name() const {return m_name;};
+    int Index() const {return m_index;};
+    bool UseTLS() const {return m_useTls;};
 
-    std::vector<RedGroupCon*>& Connections() {return m_connections;};
+    std::vector<std::shared_ptr<RedGroupCon>>& Connections() {return m_connections;};
 
-    int K() {return m_k;};
-    int W() {return m_w;};
-    int T0() {return m_t0;};
-    int T1() {return m_t1;};
-    int T2() {return m_t2;};
-    int T3() {return m_t3;};
+    int K() const {return m_k;};
+    int W() const {return m_w;};
+    int T0() const {return m_t0;};
+    int T1() const {return m_t1;};
+    int T2() const {return m_t2;};
+    int T3() const {return m_t3;};
 
     void K(int k) {m_k = k;};
     void W(int w) {m_w = w;};
@@ -59,13 +60,14 @@ public:
 
     void UseTLS(bool useTls) {m_useTls = useTls;};
 
-    void AddConnection(RedGroupCon* con);
+    void AddConnection(std::shared_ptr<RedGroupCon> con);
 
 private:
 
-    std::vector<RedGroupCon*> m_connections;
+    std::vector<std::shared_ptr<RedGroupCon>> m_connections;
 
     std::string m_name;
+    int m_index;
     bool m_useTls = false;
     
     int m_k = 12;

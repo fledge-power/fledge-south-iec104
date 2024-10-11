@@ -1,6 +1,5 @@
 #include <algorithm>
 
-#include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 
 #include <arpa/inet.h>
@@ -25,19 +24,6 @@
 
 using namespace rapidjson;
 using namespace std;
-
-IEC104ClientConfig::~IEC104ClientConfig()
-{
-    for (auto const &element : m_exchangeDefinitions) {
-        for (auto const &elem2 : element.second) {
-            delete elem2.second;
-        }
-    }
-
-    for (IEC104ClientRedGroup* redGroup : m_redundancyGroups) {
-        delete redGroup;
-    }
-}
 
 // Map of all existing ASDU types
 static std::map<std::string, int> mapAsduTypeId = {
@@ -383,7 +369,7 @@ std::string*
 IEC104ClientConfig::checkExchangeDataLayer(int typeId, int ca, int ioa)
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::checkExchangeDataLayer -";
-    auto& def = ExchangeDefinition()[ca][ioa];
+    const auto& def = ExchangeDefinition()[ca][ioa];
 
     if (def != nullptr) {
         // check if message type is matching the exchange definition
@@ -496,246 +482,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             const Value& redundancyGroups = transportLayer["redundancy_groups"];
 
             for (const Value& redGroup : redundancyGroups.GetArray()) {
-
-                if (!redGroup.IsObject()) {
-                    Iec104Utility::log_error("%s redundancy_groups element is not an object -> ignore", beforeLog.c_str());
-                    continue;
-                }
-                
-                char* redGroupName = nullptr;
-
-                if (redGroup.HasMember("rg_name")) {
-                    if (redGroup["rg_name"].IsString()) {
-                        string rgName = redGroup["rg_name"].GetString();
-
-                        redGroupName = strdup(rgName.c_str());
-                    }
-                }
-                if (redGroupName == nullptr) {
-                    Iec104Utility::log_error("%s rg_name does not exist or is not a string -> ignore", beforeLog.c_str());
-                    continue;
-                }
-
-                IEC104ClientRedGroup* redundancyGroup = new IEC104ClientRedGroup(redGroupName);
-
-                Iec104Utility::log_debug("%s Adding red group with name: %s", beforeLog.c_str(), redGroupName);
-
-                free(redGroupName);
-
-                if (redGroup.HasMember("connections") && redGroup["connections"].IsArray()) {
-                    for (const Value& con : redGroup["connections"].GetArray()) {
-                        if(!con.IsObject()) {
-                            Iec104Utility::log_error("%s  connections element is not an object -> ignore", beforeLog.c_str());
-                            continue;
-                        }
-                        if (con.HasMember("srv_ip") && con["srv_ip"].IsString()) {
-                            string srvIp = con["srv_ip"].GetString();
-
-                            if (isValidIPAddress(srvIp)) {
-
-                                Iec104Utility::log_debug("%s  add to group: %s", beforeLog.c_str(), srvIp.c_str());
-
-                                int tcpPort = 2404;
-                                bool start = true;
-                                bool conn = true;
-                                
-                                string* clientIp = nullptr;
-
-                                if (con.HasMember("clt_ip") && con["clt_ip"].IsString()) {
-                                    string cltIpStr = con["clt_ip"].GetString();
-
-                                    if (isValidIPAddress(cltIpStr)) {
-                                        clientIp = new string(cltIpStr);
-                                    }
-                                    else {
-                                        Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client",
-                                                                beforeLog.c_str(), cltIpStr.c_str());
-                                    }
-                                }
-                                else {
-                                    Iec104Utility::log_warn("%s  clt_ip does not exist or is not a string -> ignore client",
-                                                            beforeLog.c_str());
-                                }
-
-                                if (con.HasMember("port")) {
-                                    if (con["port"].IsInt()) {
-                                        int tcpPortVal = con["port"].GetInt();
-
-                                        if (tcpPortVal > 0 && tcpPortVal < 65636) {
-                                            tcpPort = tcpPortVal;
-                                        }
-                                        else {
-                                            Iec104Utility::log_error("%s  port value out of range [1..65635]: %d -> using default port (%d)",
-                                                                    beforeLog.c_str(), tcpPortVal, tcpPort);
-                                        }
-                                    }
-                                    else {
-                                        Iec104Utility::log_warn("%s  port is not an integer -> using default port (%d)",
-                                                                beforeLog.c_str(), tcpPort);
-                                    }
-                                }
-
-                                if (con.HasMember("conn")) {
-                                    if (con["conn"].IsBool()) {
-                                        conn = con["conn"].GetBool();
-                                    }
-                                    else {
-                                        Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%d)",
-                                                                beforeLog.c_str(), conn?"true":"false");
-                                    }
-                                }
-
-                                if (con.HasMember("start")) {
-                                    if (con["start"].IsBool()) {
-                                        start = con["start"].GetBool();
-                                    }
-                                    else {
-                                        Iec104Utility::log_warn("%s  start is not a bool -> using default start (%d)",
-                                                                beforeLog.c_str(), start?"true":"false");
-                                    }
-                                }
-
-                                RedGroupCon* connection = new RedGroupCon(srvIp, tcpPort, conn, start, clientIp);
-
-                                redundancyGroup->AddConnection(connection);
-
-                            }
-                            else {
-                                Iec104Utility::log_error("%s  srv_ip %s is not a valid IP address -> ignore", beforeLog.c_str(),
-                                                        srvIp.c_str());
-                                continue;
-                            }
-                        }
-                        else {
-                            Iec104Utility::log_error("%s  srv_ip does not exist or is not a string -> ignore",
-                                                    beforeLog.c_str());
-                            continue;
-                        }
-                    }
-                }
-                else {
-                    Iec104Utility::log_debug("%s  connections does not exist or is not an array -> adding fallback group",
-                                            beforeLog.c_str());
-                }
-
-                if (redGroup.HasMember("k_value")) {
-                    if (redGroup["k_value"].IsInt()) {
-                        int kValue = redGroup["k_value"].GetInt();
-
-                        if (kValue > 0 && kValue < 32768) {
-                            redundancyGroup->K(kValue);
-                        }
-                        else {
-                            Iec104Utility::log_warn("%s redGroup.k_value value out of range [1..32767]: %d -> using default value (%d)",
-                                                    beforeLog.c_str(), kValue, redundancyGroup->K());
-                        }
-                    }
-                    else {
-                        Iec104Utility::log_warn("%s redGroup.k_value is not an integer -> using default value (%d)", beforeLog.c_str(),
-                                                redundancyGroup->K());
-                    }
-                }
-
-                if (redGroup.HasMember("w_value")) {
-                    if (redGroup["w_value"].IsInt()) {
-                        int wValue = redGroup["w_value"].GetInt();
-
-                        if (wValue > 0 && wValue < 32768) {
-                            redundancyGroup->W(wValue);
-                        }
-                        else {
-                            Iec104Utility::log_warn("%s redGroup.w_value value out of range [1..32767]: %d -> using default value (%d)",
-                                                    beforeLog.c_str(), wValue, redundancyGroup->W());
-                        }
-                    }
-                    else {
-                        Iec104Utility::log_warn("%s redGroup.w_value is not an integer -> using default value (%d)", beforeLog.c_str(),
-                                                redundancyGroup->W());
-                    }
-                }
-
-                if (redGroup.HasMember("t0_timeout")) {
-                    if (redGroup["t0_timeout"].IsInt()) {
-                        int t0Timeout = redGroup["t0_timeout"].GetInt();
-
-                        if (t0Timeout > 0 && t0Timeout < 256) {
-                            redundancyGroup->T0(t0Timeout);
-                        }
-                        else {
-                            Iec104Utility::log_warn("%s redGroup.t0_timeout value out of range [1..255]: %d -> using default value (%d)",
-                                                    beforeLog.c_str(), t0Timeout, redundancyGroup->T0());
-                        }
-                    }
-                    else {
-                        Iec104Utility::log_warn("%s redGroup.t0_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
-                                                redundancyGroup->T0());
-                    }
-                }
-
-                if (redGroup.HasMember("t1_timeout")) {
-                    if (redGroup["t1_timeout"].IsInt()) {
-                        int t1Timeout = redGroup["t1_timeout"].GetInt();
-
-                        if (t1Timeout > 0 && t1Timeout < 256) {
-                            redundancyGroup->T1(t1Timeout);
-                        }
-                        else {
-                            Iec104Utility::log_warn("%s redGroup.t1_timeout value out of range [1..255]: %d -> using default value (%d)",
-                                                    beforeLog.c_str(), t1Timeout, redundancyGroup->T1());
-                        }
-                    }
-                    else {
-                        Iec104Utility::log_warn("%s redGroup.t1_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
-                                                redundancyGroup->T1());
-                    }
-                }
-
-                if (redGroup.HasMember("t2_timeout")) {
-                    if (redGroup["t2_timeout"].IsInt()) {
-                        int t2Timeout = redGroup["t2_timeout"].GetInt();
-
-                        if (t2Timeout > 0 && t2Timeout < 256) {
-                            redundancyGroup->T2(t2Timeout);
-                        }
-                        else {
-                            Iec104Utility::log_warn("%s redGroup.t2_timeout value out of range [1..255]: %d -> using default value (%d)",
-                                                    beforeLog.c_str(), t2Timeout, redundancyGroup->T2());
-                        }
-                    }
-                    else {
-                        Iec104Utility::log_warn("%s redGroup.t2_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
-                                                redundancyGroup->T2());
-                    }
-                }
-
-                if (redGroup.HasMember("t3_timeout")) {
-                    if (redGroup["t3_timeout"].IsInt()) {
-                        int t3Timeout = redGroup["t3_timeout"].GetInt();
-
-                        if (t3Timeout > -1) {
-                            redundancyGroup->T3(t3Timeout);
-                        }
-                        else {
-                            Iec104Utility::log_warn("%s redGroup.t3_timeout value out of range [0..+Inf]: %d -> using default value (%d)",
-                                                    beforeLog.c_str(), t3Timeout, redundancyGroup->T3());
-                        }
-                    }
-                    else {
-                        Iec104Utility::log_warn("%s redGroup.t3_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
-                                                redundancyGroup->T3());
-                    }
-                }
-
-                if (redGroup.HasMember("tls")) {
-                    if (redGroup["tls"].IsBool()) {
-                        redundancyGroup->UseTLS(redGroup["tls"].GetBool());
-                    }
-                    else {
-                        Iec104Utility::log_warn("%s redGroup.tls is not a bool -> not using TLS", beforeLog.c_str());
-                    }
-                }
-
-                m_redundancyGroups.push_back(redundancyGroup);
+                importRedGroup(redGroup);
             }
         }
         else {
@@ -949,16 +696,253 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
     m_protocolConfigComplete = true;
 }
 
-void IEC104ClientConfig::deleteExchangeDefinitions()
+void IEC104ClientConfig::importRedGroup(const Value& redGroup)
 {
-    for (auto const& exchangeDefintions : m_exchangeDefinitions) {
-        for (auto const& dpPair : exchangeDefintions.second) {
-            DataExchangeDefinition* dp = dpPair.second;
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importRedGroup -";
+    
+    if (!redGroup.IsObject()) {
+        Iec104Utility::log_error("%s redundancy_groups element is not an object -> ignore", beforeLog.c_str());
+        return;
+    }
+    
+    std::string redGroupName;
+    bool hasName = false;
+    if (redGroup.HasMember("rg_name")) {
+        if (redGroup["rg_name"].IsString()) {
+            redGroupName = redGroup["rg_name"].GetString();
+            hasName = true;
+        }
+    }
+    if (!hasName) {
+        Iec104Utility::log_error("%s rg_name does not exist or is not a string -> ignore", beforeLog.c_str());
+        return;
+    }
 
-            delete dp;
+    auto redundancyGroup = std::make_shared<IEC104ClientRedGroup>(redGroupName, static_cast<int>(m_redundancyGroups.size()));
+
+    Iec104Utility::log_debug("%s Adding red group with name: %s", beforeLog.c_str(), redGroupName.c_str());
+
+    if (redGroup.HasMember("connections") && redGroup["connections"].IsArray()) {
+        for (const Value& con : redGroup["connections"].GetArray()) {
+            importRedGroupCon(con, redundancyGroup);
+        }
+    }
+    else {
+        Iec104Utility::log_debug("%s  connections does not exist or is not an array -> adding fallback group",
+                                beforeLog.c_str());
+    }
+
+    if (redGroup.HasMember("k_value")) {
+        if (redGroup["k_value"].IsInt()) {
+            int kValue = redGroup["k_value"].GetInt();
+
+            if (kValue > 0 && kValue < 32768) {
+                redundancyGroup->K(kValue);
+            }
+            else {
+                Iec104Utility::log_warn("%s redGroup.k_value value out of range [1..32767]: %d -> using default value (%d)",
+                                        beforeLog.c_str(), kValue, redundancyGroup->K());
+            }
+        }
+        else {
+            Iec104Utility::log_warn("%s redGroup.k_value is not an integer -> using default value (%d)", beforeLog.c_str(),
+                                    redundancyGroup->K());
         }
     }
 
+    if (redGroup.HasMember("w_value")) {
+        if (redGroup["w_value"].IsInt()) {
+            int wValue = redGroup["w_value"].GetInt();
+
+            if (wValue > 0 && wValue < 32768) {
+                redundancyGroup->W(wValue);
+            }
+            else {
+                Iec104Utility::log_warn("%s redGroup.w_value value out of range [1..32767]: %d -> using default value (%d)",
+                                        beforeLog.c_str(), wValue, redundancyGroup->W());
+            }
+        }
+        else {
+            Iec104Utility::log_warn("%s redGroup.w_value is not an integer -> using default value (%d)", beforeLog.c_str(),
+                                    redundancyGroup->W());
+        }
+    }
+
+    if (redGroup.HasMember("t0_timeout")) {
+        if (redGroup["t0_timeout"].IsInt()) {
+            int t0Timeout = redGroup["t0_timeout"].GetInt();
+
+            if (t0Timeout > 0 && t0Timeout < 256) {
+                redundancyGroup->T0(t0Timeout);
+            }
+            else {
+                Iec104Utility::log_warn("%s redGroup.t0_timeout value out of range [1..255]: %d -> using default value (%d)",
+                                        beforeLog.c_str(), t0Timeout, redundancyGroup->T0());
+            }
+        }
+        else {
+            Iec104Utility::log_warn("%s redGroup.t0_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
+                                    redundancyGroup->T0());
+        }
+    }
+
+    if (redGroup.HasMember("t1_timeout")) {
+        if (redGroup["t1_timeout"].IsInt()) {
+            int t1Timeout = redGroup["t1_timeout"].GetInt();
+
+            if (t1Timeout > 0 && t1Timeout < 256) {
+                redundancyGroup->T1(t1Timeout);
+            }
+            else {
+                Iec104Utility::log_warn("%s redGroup.t1_timeout value out of range [1..255]: %d -> using default value (%d)",
+                                        beforeLog.c_str(), t1Timeout, redundancyGroup->T1());
+            }
+        }
+        else {
+            Iec104Utility::log_warn("%s redGroup.t1_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
+                                    redundancyGroup->T1());
+        }
+    }
+
+    if (redGroup.HasMember("t2_timeout")) {
+        if (redGroup["t2_timeout"].IsInt()) {
+            int t2Timeout = redGroup["t2_timeout"].GetInt();
+
+            if (t2Timeout > 0 && t2Timeout < 256) {
+                redundancyGroup->T2(t2Timeout);
+            }
+            else {
+                Iec104Utility::log_warn("%s redGroup.t2_timeout value out of range [1..255]: %d -> using default value (%d)",
+                                        beforeLog.c_str(), t2Timeout, redundancyGroup->T2());
+            }
+        }
+        else {
+            Iec104Utility::log_warn("%s redGroup.t2_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
+                                    redundancyGroup->T2());
+        }
+    }
+
+    if (redGroup.HasMember("t3_timeout")) {
+        if (redGroup["t3_timeout"].IsInt()) {
+            int t3Timeout = redGroup["t3_timeout"].GetInt();
+
+            if (t3Timeout > -1) {
+                redundancyGroup->T3(t3Timeout);
+            }
+            else {
+                Iec104Utility::log_warn("%s redGroup.t3_timeout value out of range [0..+Inf]: %d -> using default value (%d)",
+                                        beforeLog.c_str(), t3Timeout, redundancyGroup->T3());
+            }
+        }
+        else {
+            Iec104Utility::log_warn("%s redGroup.t3_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
+                                    redundancyGroup->T3());
+        }
+    }
+
+    if (redGroup.HasMember("tls")) {
+        if (redGroup["tls"].IsBool()) {
+            redundancyGroup->UseTLS(redGroup["tls"].GetBool());
+        }
+        else {
+            Iec104Utility::log_warn("%s redGroup.tls is not a bool -> not using TLS", beforeLog.c_str());
+        }
+    }
+
+    m_redundancyGroups.push_back(redundancyGroup);
+}
+
+void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC104ClientRedGroup> redundancyGroup) const
+{
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importRedGroupCon -";
+
+    if(!con.IsObject()) {
+        Iec104Utility::log_error("%s  connections element is not an object -> ignore", beforeLog.c_str());
+        return;
+    }
+
+    if (!con.HasMember("srv_ip") || !con["srv_ip"].IsString()) {
+        Iec104Utility::log_error("%s  srv_ip does not exist or is not a string -> ignore", beforeLog.c_str());
+        return;
+    }
+    string srvIp = con["srv_ip"].GetString();
+
+    if (!isValidIPAddress(srvIp)) {
+        Iec104Utility::log_error("%s  srv_ip %s is not a valid IP address -> ignore", beforeLog.c_str(), srvIp.c_str());
+        return;
+    }
+
+    Iec104Utility::log_debug("%s  add to group: %s", beforeLog.c_str(), srvIp.c_str());
+
+    int tcpPort = 2404;
+    bool start = true;
+    bool conn = true;
+    
+    string clientIp;
+
+    if (con.HasMember("clt_ip")) {
+        if (con["clt_ip"].IsString()) {
+            string cltIpStr = con["clt_ip"].GetString();
+
+            if (isValidIPAddress(cltIpStr)) {
+                clientIp = cltIpStr;
+            }
+            else {
+                Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client",
+                                        beforeLog.c_str(), cltIpStr.c_str());
+            }
+        }
+        else {
+            Iec104Utility::log_warn("%s  clt_ip is not a string -> ignore client",
+                                    beforeLog.c_str());
+        }
+    }
+    
+    if (con.HasMember("port")) {
+        if (con["port"].IsInt()) {
+            int tcpPortVal = con["port"].GetInt();
+
+            if (tcpPortVal > 0 && tcpPortVal < 65636) {
+                tcpPort = tcpPortVal;
+            }
+            else {
+                Iec104Utility::log_error("%s  port value out of range [1..65635]: %d -> using default port (%d)",
+                                        beforeLog.c_str(), tcpPortVal, tcpPort);
+            }
+        }
+        else {
+            Iec104Utility::log_warn("%s  port is not an integer -> using default port (%d)",
+                                    beforeLog.c_str(), tcpPort);
+        }
+    }
+
+    if (con.HasMember("conn")) {
+        if (con["conn"].IsBool()) {
+            conn = con["conn"].GetBool();
+        }
+        else {
+            Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%d)",
+                                    beforeLog.c_str(), conn?"true":"false");
+        }
+    }
+
+    if (con.HasMember("start")) {
+        if (con["start"].IsBool()) {
+            start = con["start"].GetBool();
+        }
+        else {
+            Iec104Utility::log_warn("%s  start is not a bool -> using default start (%d)",
+                                    beforeLog.c_str(), start?"true":"false");
+        }
+    }
+
+    auto connection = std::make_shared<RedGroupCon>(srvIp, tcpPort, conn, start, clientIp);
+
+    redundancyGroup->AddConnection(connection);
+}
+
+void IEC104ClientConfig::deleteExchangeDefinitions()
+{
     m_exchangeDefinitions.clear();
 }
 
@@ -967,6 +951,7 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importTlsConfig -";
     Document document;
+    m_tlsConfigComplete = false;
 
     if (document.Parse(const_cast<char*>(tlsConfig.c_str())).HasParseError()) {
         Iec104Utility::log_fatal("%s Parsing error in tls_conf json, offset %u: %s", beforeLog.c_str(),
@@ -1045,6 +1030,8 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
     else {
         Iec104Utility::log_warn("%s remote_certs does not exist or is not an array", beforeLog.c_str());
     }
+
+    m_tlsConfigComplete = true;
 }
 
 static vector<string> tokenizeString(string& str, string delimiter)
@@ -1067,12 +1054,12 @@ static vector<string> tokenizeString(string& str, string delimiter)
     return tokens;
 }
 
-DataExchangeDefinition*
+std::shared_ptr<DataExchangeDefinition>
 IEC104ClientConfig::getExchangeDefinitionByLabel(std::string& label)
 {
     for (auto const& exchangeDefintions : ExchangeDefinition()) {
         for (auto const& dpPair : exchangeDefintions.second) {
-            DataExchangeDefinition* dp = dpPair.second;
+            std::shared_ptr<DataExchangeDefinition> dp = dpPair.second;
 
             if (dp) {
                 if (dp->label == label) {
@@ -1085,12 +1072,12 @@ IEC104ClientConfig::getExchangeDefinitionByLabel(std::string& label)
     return nullptr;
 }
 
-DataExchangeDefinition*
+std::shared_ptr<DataExchangeDefinition>
 IEC104ClientConfig::getCnxLossStatusDatapoint()
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::getCnxLossStatusDatapoint -";
     if (m_sendCnxLossStatus) {
-        DataExchangeDefinition* cnxLossStatusDp = getExchangeDefinitionByLabel(m_cnxLossStatusId);
+        auto cnxLossStatusDp = getExchangeDefinitionByLabel(m_cnxLossStatusId);
 
         if (cnxLossStatusDp != nullptr) {
             if ((cnxLossStatusDp->typeId == M_SP_NA_1) || (cnxLossStatusDp->typeId == M_SP_TB_1)) {
@@ -1239,7 +1226,7 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                         return;
                     }
 
-                    DataExchangeDefinition* def = new DataExchangeDefinition();
+                    auto def = std::make_shared<DataExchangeDefinition>();
 
                     if (def) {
                         def->ca = ca;

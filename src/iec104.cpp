@@ -24,25 +24,16 @@
 using namespace std;
 
 /** Constructor for the iec104 plugin */
-IEC104::IEC104() : m_client(nullptr)
+IEC104::IEC104()
 {
-    m_config = new IEC104ClientConfig();
-}
-
-IEC104::~IEC104()
-{
-    delete m_config;
+    m_config = std::make_shared<IEC104ClientConfig>();
 }
 
 void IEC104::setJsonConfig(const std::string& stack_configuration,
                            const std::string& msg_configuration,
                            const std::string& tls_configuration)
 {
-    if (m_config != nullptr) {
-        delete m_config;
-    }
-
-    m_config = new IEC104ClientConfig();
+    m_config = std::make_shared<IEC104ClientConfig>();
 
     m_config->importProtocolConfig(stack_configuration);
     m_config->importExchangeConfig(msg_configuration);
@@ -74,7 +65,7 @@ void IEC104::start()
     }
     */
 
-    m_client = new IEC104Client(this, m_config);
+    m_client = std::make_shared<IEC104Client>(this, m_config);
 
     m_client->start();
 }
@@ -85,8 +76,6 @@ void IEC104::stop()
     if (m_client != nullptr)
     {
         m_client->stop();
-
-        delete m_client;
         m_client = nullptr;
     }
 }
@@ -137,7 +126,7 @@ enum CommandParameters{
 };
 
 bool
-IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_singleCommandOperation -";
     if (count > 8) {
@@ -183,7 +172,7 @@ IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
 }
 
 bool
-IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_doubleCommandOperation -";
     if (count > 8) {
@@ -229,7 +218,7 @@ IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
 }
 
 bool
-IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_stepCommandOperation -";
     if (count > 8) {
@@ -275,7 +264,7 @@ IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTi
 }
 
 bool
-IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointNormalized -";
     if (count > 8) {
@@ -317,7 +306,7 @@ IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime
 }
 
 bool
-IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointScaled -";
     if (count > 8) {
@@ -359,7 +348,7 @@ IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime)
 }
 
 bool
-IEC104::m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime)
+IEC104::m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointShort -";
     if (count > 8) {
@@ -433,8 +422,7 @@ static std::pair<std::string, std::string> paramsToStr(PLUGIN_PARAMETER** params
  * @return true when the command has been accepted, false otherwise
  */
 bool
-IEC104::operation(const std::string& operation, int count,
-                       PLUGIN_PARAMETER** params)
+IEC104::operation(const std::string& operation, int count, PLUGIN_PARAMETER** params) const
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104::operation -";
     if (m_client == nullptr) {

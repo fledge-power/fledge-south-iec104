@@ -4,6 +4,9 @@
 
 #include <map>
 #include <vector>
+#include <memory>
+
+#include <rapidjson/document.h>
 
 class IEC104ClientRedGroup;
 
@@ -20,13 +23,16 @@ class IEC104ClientConfig
 public:
     IEC104ClientConfig() {m_exchangeDefinitions.clear();};
     //IEC104ClientConfig(const std::string& protocolConfig, const std::string& exchangeConfig);
-    ~IEC104ClientConfig();
+    ~IEC104ClientConfig() = default;
 
     int LogLevel() {return 1;};
 
     void importProtocolConfig(const std::string& protocolConfig);
     void importExchangeConfig(const std::string& exchangeConfig);
     void importTlsConfig(const std::string& tlsConfig);
+
+    void importRedGroup(const rapidjson::Value& redGroup);
+    void importRedGroupCon(const rapidjson::Value& con, std::shared_ptr<IEC104ClientRedGroup> redundancyGroup) const;
 
     int CaSize() {return m_caSize;};
     int IOASize() {return m_ioaSize;};
@@ -59,9 +65,9 @@ public:
 
     static bool isValidIPAddress(const std::string& addrStr);
 
-    std::vector<IEC104ClientRedGroup*>& RedundancyGroups() {return m_redundancyGroups;};
+    std::vector<std::shared_ptr<IEC104ClientRedGroup>>& RedundancyGroups() {return m_redundancyGroups;};
 
-    std::map<int, std::map<int, DataExchangeDefinition*>>& ExchangeDefinition() {return m_exchangeDefinitions;};
+    std::map<int, std::map<int, std::shared_ptr<DataExchangeDefinition>>>& ExchangeDefinition() {return m_exchangeDefinitions;};
 
     std::vector<int>& ListOfCAs() {return m_listOfCAs;};
 
@@ -70,9 +76,13 @@ public:
 
     std::string* checkExchangeDataLayer(int typeId, int ca, int ioa);
 
-    DataExchangeDefinition* getExchangeDefinitionByLabel(std::string& label);
+    std::shared_ptr<DataExchangeDefinition> getExchangeDefinitionByLabel(std::string& label);
 
-    DataExchangeDefinition* getCnxLossStatusDatapoint();
+    std::shared_ptr<DataExchangeDefinition> getCnxLossStatusDatapoint();
+
+    int GetMaxRedGroups() const {return m_max_red_groups;};
+
+    bool isConfigComplete() const {return m_protocolConfigComplete && m_exchangeConfigComplete && m_tlsConfigComplete;};
 
 private:
 
@@ -80,11 +90,12 @@ private:
 
     void deleteExchangeDefinitions();
 
-    std::vector<IEC104ClientRedGroup*> m_redundancyGroups = std::vector<IEC104ClientRedGroup*>();
+    std::vector<std::shared_ptr<IEC104ClientRedGroup>> m_redundancyGroups;
+    int m_max_red_groups = 2;
 
-    std::map<int, std::map<int, DataExchangeDefinition*>> m_exchangeDefinitions = std::map<int, std::map<int, DataExchangeDefinition*>>();
+    std::map<int, std::map<int, std::shared_ptr<DataExchangeDefinition>>> m_exchangeDefinitions;
 
-    std::vector<int> m_listOfCAs = std::vector<int>();
+    std::vector<int> m_listOfCAs;
 
     int m_cmdParallel = 0; /* application_layer/cmd_parallel - 0 = no limit - limits the number of commands that can be executed in parallel */
     
@@ -108,6 +119,7 @@ private:
 
     bool m_protocolConfigComplete = false; /* flag if protocol configuration is read */
     bool m_exchangeConfigComplete = false; /* flag if exchange configuration is read */
+    bool m_tlsConfigComplete = false; /* flag if tls configuration is read */
 
     std::string m_connxStatus = ""; /* "asset" name for south plugin monitoring event */
 

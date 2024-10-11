@@ -198,17 +198,21 @@ extern "C"
         iec104 = new IEC104();
 
         if (iec104) {
-            if (config->itemExists("asset"))
+            if (config->itemExists("asset")) {
                 iec104->setAssetName(config->getValue("asset"));
-            else
+            }
+            else {
                 iec104->setAssetName("iec 104");
-
+            }
+            iec104->setServiceName(config->getName());
+            
             if (config->itemExists("protocol_stack") &&
                 config->itemExists("exchanged_data") &&
-                config->itemExists("tls"))
+                config->itemExists("tls")) {
                 iec104->setJsonConfig(config->getValue("protocol_stack"),
                                       config->getValue("exchanged_data"),
                                       config->getValue("tls"));
+            }
         }
 
         Iec104Utility::log_info("%s Plugin initialized", beforeLog.c_str());
@@ -258,8 +262,8 @@ extern "C"
         std::string beforeLog = Iec104Utility::PluginName + " - plugin_reconfigure -";
         Iec104Utility::log_info("%s New config: %s", beforeLog.c_str(), newConfig.c_str());
 
-        ConfigCategory config("newConfig", newConfig);
         auto *iec104 = reinterpret_cast<IEC104 *>(*handle);
+        ConfigCategory config(iec104->getServiceName(), newConfig);
 
         iec104->stop();
 
@@ -311,7 +315,7 @@ extern "C"
     {
         if (!handle) throw exception();
 
-        auto *iec104 = reinterpret_cast<IEC104 *>(handle);
+        const auto *iec104 = reinterpret_cast<IEC104 *>(handle);
 
         return iec104->operation(operation, count, params);
     }
