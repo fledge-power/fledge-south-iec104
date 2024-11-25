@@ -921,7 +921,7 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
             conn = con["conn"].GetBool();
         }
         else {
-            Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%d)",
+            Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%s)",
                                     beforeLog.c_str(), conn?"true":"false");
         }
     }
@@ -931,7 +931,7 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
             start = con["start"].GetBool();
         }
         else {
-            Iec104Utility::log_warn("%s  start is not a bool -> using default start (%d)",
+            Iec104Utility::log_warn("%s  start is not a bool -> using default start (%s)",
                                     beforeLog.c_str(), start?"true":"false");
         }
     }
