@@ -632,6 +632,7 @@ TEST_F(ConnectionHandlingTest, TwoConnectionsSingleRedundancyGroup)
     iec104->setJsonConfig(protocol_config, exchanged_data, tls_config);
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -674,6 +675,7 @@ TEST_F(ConnectionHandlingTest, TwoConnectionsSingleRedundancyGroup)
 //     iec104->setJsonConfig(protocol_config_5, exchanged_data, tls_config);
 
 //     CS104_Slave slave1 = CS104_Slave_create(10, 10);
+//     ASSERT_NE(slave, nullptr);
 
 //     CS104_Slave_setLocalPort(slave1, TEST_PORT);
 
@@ -686,6 +688,7 @@ TEST_F(ConnectionHandlingTest, TwoConnectionsSingleRedundancyGroup)
 //     CS101_AppLayerParameters alParams1 = CS104_Slave_getAppLayerParameters(slave1);
 
 //     CS104_Slave slave2 = CS104_Slave_create(10, 10);
+//     ASSERT_NE(slave, nullptr);
 
 //     CS104_Slave_setLocalPort(slave2, TEST_PORT+1);
 
@@ -732,6 +735,7 @@ TEST_F(ConnectionHandlingTest, TwoConnectionsOnlyOneConfiguredToConnect)
     iec104->setJsonConfig(protocol_config_2, exchanged_data, tls_config);
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -785,6 +789,7 @@ TEST_F(ConnectionHandlingTest, SingleConnectionTLS)
     TLSConfiguration_setAllowOnlyKnownCertificates(tlsConfig, true);
 
     CS104_Slave slave = CS104_Slave_createSecure(10, 10, tlsConfig);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 

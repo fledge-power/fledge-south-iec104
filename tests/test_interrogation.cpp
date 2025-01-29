@@ -820,6 +820,7 @@ TEST_F(InterrogationTest, IEC104Client_startupProcedureSeparateRequestForEachCA)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -863,6 +864,7 @@ TEST_F(InterrogationTest, IEC104Client_startupProcedureBroadcastCA)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -900,6 +902,7 @@ TEST_F(InterrogationTest, IEC104Client_GIcycleOneSecond)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -950,6 +953,7 @@ TEST_F(InterrogationTest, IEC104Client_GIcycleOneSecondNoACT_CON)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -991,6 +995,7 @@ TEST_F(InterrogationTest, InterrogationRequestAfter_M_EI_NA_1)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1084,6 +1089,7 @@ TEST_F(InterrogationTest, GICycleReceiveConfiguredDatapoints)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 

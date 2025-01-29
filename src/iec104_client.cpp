@@ -1349,9 +1349,17 @@ IEC104Client::_monitoringThread()
     }
 
     Iec104Utility::log_info("%s Terminating all client connections", beforeLog.c_str());
-    m_connections.clear();
+    
     std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
     m_activeConnection = nullptr;
+    // This ensures that all shared_ptr to IEC104ClientConnection present in outstanding commands are cleared
+    // before we exit the monitoring thread which prevents crashes in some unit tests where connection object
+    // would be destroyed after the IEC104Client object was destroyed.
+    if(!m_outstandingCommands.empty()) {
+        std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx);
+        m_outstandingCommands.clear();
+    }
+    m_connections.clear();
     updateConnectionStatus(ConnectionStatus::NOT_CONNECTED);
 }
 
