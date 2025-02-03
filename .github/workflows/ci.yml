@@ -18,6 +18,8 @@ jobs:
                                         # https://docs.sonarqube.org/latest/analysis/scan/sonarscanner/
       SONAR_SERVER_URL: "https://sonarcloud.io"
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
+      LIB60870_VERSION: "v2.3.3"
+      MBEDTLS_VERSION: "2.28.9"
     steps:
       - uses: actions/checkout@v2
         with:
@@ -71,8 +73,6 @@ jobs:
           sudo cp -prv /usr/local/fledge/lib/* /usr/lib/fledge/
       - name: Download and install lib60870
         env:
-          LIB60870_VERSION: "v2.3.3"
-          MBEDTLS_VERSION: "2.28.9"
           LIB60870_REPO_URL: "https://github.com/mz-automation/lib60870/archive/refs/tags/${{ env.LIB60870_VERSION }}.tar.gz" 
           MBEDTLS_REPO_URL: "https://github.com/ARMmbed/mbedtls/archive/refs/tags/v${{ env.MBEDTLS_VERSION }}.tar.gz"
         run: |
