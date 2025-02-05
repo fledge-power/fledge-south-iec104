@@ -1896,6 +1896,7 @@ TEST_F(ConfigTest, ConfigTest23) {
 //     ingestCallbackCalled = 0;
 
 //     CS104_Slave slave = CS104_Slave_create(15, 15);
+//     ASSERT_NE(slave, nullptr);
 
 //     CS104_Slave_setLocalPort(slave, TEST_PORT);
 

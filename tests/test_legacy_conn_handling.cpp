@@ -576,6 +576,7 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLost)
     iec104->setJsonConfig(protocol_config_no_red, exchanged_data, tls_config);
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -642,6 +643,7 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLostReconnect)
     iec104->setJsonConfig(protocol_config_no_red, exchanged_data, tls_config);
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -721,6 +723,7 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLostStatus)
     iec104->setJsonConfig(protocol_config_no_red, exchanged_data_2, tls_config);
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 

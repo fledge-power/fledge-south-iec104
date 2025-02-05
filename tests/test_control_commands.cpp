@@ -568,6 +568,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendSingleCommand)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -648,6 +649,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendSingleCommandNotInExchangeConfig)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -703,6 +705,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendDoubleCommand)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -782,6 +785,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendDoubleCommandWithTimestamp)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -868,6 +872,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendDoubleCommandNotConnected)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -914,6 +919,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendSetpointCommandShort)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -998,6 +1004,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendSetpointCommandShortNoTime)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1079,6 +1086,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendSetpointNormalizedTime)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1164,6 +1172,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendSetpointCommandNormalizedNoTime)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1245,6 +1254,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendSetpointScaledNoTime)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1326,6 +1336,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendSetpointCommandScaledWithTime)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1410,6 +1421,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendSinglePointCommandWithTime)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1494,6 +1506,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendStepCommandTime)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1580,6 +1593,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendTwoSingleCommands)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1665,6 +1679,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendStepCommand)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1745,6 +1760,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendInterrogationCommand)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1783,6 +1799,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendBrokenCommands1)
     ingestCallbackCalled = 0;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1910,6 +1927,7 @@ TEST_F(ControlCommandsTest, IEC104Client_sendBrokenCommands2)
     iec104->setJsonConfig(protocol_config, exchanged_data1, tls_config);
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 

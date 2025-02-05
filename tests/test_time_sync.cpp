@@ -316,6 +316,7 @@ TEST_F(TimeSyncTest, IEC104Client_checkPeriodicTimesync)
     iec104->setJsonConfig(protocol_config, exchanged_data, tls_config);
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -349,6 +350,7 @@ TEST_F(TimeSyncTest, IEC104Client_checkPeriodicTimesyncDenied)
     iec104->setJsonConfig(protocol_config, exchanged_data, tls_config);
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 

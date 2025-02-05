@@ -18,6 +18,8 @@ jobs:
                                         # https://docs.sonarqube.org/latest/analysis/scan/sonarscanner/
       SONAR_SERVER_URL: "https://sonarcloud.io"
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
+      LIB60870_VERSION: "v2.3.3"
+      MBEDTLS_VERSION: "2.28.9"
     steps:
       - uses: actions/checkout@v2
         with:
@@ -71,28 +73,30 @@ jobs:
           sudo cp -prv /usr/local/fledge/lib/* /usr/lib/fledge/
       - name: Download and install lib60870
         env:
-          LIB60870_REPO_URL: "https://github.com/mz-automation/lib60870.git" 
-          MBEDTLS_REPO_URL: "https://github.com/Mbed-TLS/mbedtls/archive/refs/tags/v2.28.2.tar.gz"
+          LIB60870_REPO_URL: "https://github.com/mz-automation/lib60870/archive/refs/tags/${{ env.LIB60870_VERSION }}.tar.gz" 
+          MBEDTLS_REPO_URL: "https://github.com/ARMmbed/mbedtls/archive/refs/tags/v${{ env.MBEDTLS_VERSION }}.tar.gz"
         run: |
           cd $HOME
-          git clone ${{ env.LIB60870_REPO_URL }}
-          cd $HOME/lib60870/lib60870-C
-          cd dependencies
+          wget -O ./lib60870.tar.gz ${{ env.LIB60870_REPO_URL }}
+          tar -xf lib60870.tar.gz
+          cd $HOME/lib60870*/lib60870-C
+          cd ..
+          export LIB_104=`pwd`
+          echo "Set the environment variable LIB_104 to $LIB_104"
+          cd ./lib60870-C/dependencies
           wget  ${{ env.MBEDTLS_REPO_URL }}
-          tar xf v2.28.2.tar.gz
-          mv mbedtls-2.28.2/ mbedtls-2.28
+          tar xf v${{ env.MBEDTLS_VERSION }}.tar.gz
+          mv mbedtls-${{ env.MBEDTLS_VERSION }} mbedtls-2.28
           cd ..
           mkdir build
           cd build
           cmake -DBUILD_TESTS=NO -DBUILD_EXAMPLES=NO ..
           make
           sudo make install
-          echo Set the environment variable LIB_104 to $HOME/lib60870
-          export LIB_104=$HOME/lib60870
           sudo mkdir -p /usr/local/include/lib60870/
-          sudo cp $HOME/lib60870/lib60870-C/src/hal/inc/* /usr/local/include/lib60870/
-          sudo cp $HOME/lib60870/lib60870-C/src/inc/api/* /usr/local/include/lib60870/
-          sudo cp $HOME/lib60870/lib60870-C/src/inc/internal/* /usr/local/include/lib60870/
+          sudo cp $LIB_104/lib60870-C/src/hal/inc/* /usr/local/include/lib60870/
+          sudo cp $LIB_104/lib60870-C/src/inc/api/* /usr/local/include/lib60870/
+          sudo cp $LIB_104/lib60870-C/src/inc/internal/* /usr/local/include/lib60870/
       - name: Download and install Google Unit Test framework
         run: |
           sudo apt-get install libgtest-dev
