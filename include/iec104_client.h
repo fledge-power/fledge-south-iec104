@@ -142,6 +142,9 @@ private:
 
     bool m_started = false;
 
+    // Boolean saying if a gi asking is waiting to be send. If true, as soon as the current gi will end a new one will be triggered and this will be set to false.
+    bool m_giInQueue = false;
+
     std::shared_ptr<std::thread> m_monitoringThread;
     void _monitoringThread();
 

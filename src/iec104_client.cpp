@@ -40,6 +40,30 @@ getMonotonicTimeInMs()
     return timeVal;
 }
 
+static bool isTypeIdSTS(IEC60870_5_TypeID typeId) {
+    if (M_SP_NA_1 || M_SP_TA_1 || M_SP_TB_1 || M_PS_NA_1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static bool isTypeIdDTS(IEC60870_5_TypeID typeId) {
+    if (M_DP_NA_1 || M_DP_TA_1 || M_DP_TB_1 || M_EP_TA_1 || M_EP_TD_1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static bool isTypeIdTS(IEC60870_5_TypeID typeId) {
+    if (isTypeIdSTS(typeId) || isTypeIdDTS(typeId)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 template <class T>
 Datapoint* IEC104Client::m_createDatapoint(const std::string& dataname, const T value)
 {
@@ -524,6 +548,11 @@ IEC104Client::updateGiStatus(GiStatus newState)
     m_giStatus = newState;
 
     sendSouthMonitoringEvent(false, true);
+
+    if (m_giInQueue && (newState == GiStatus::FAILED || newState == GiStatus::FINISHED)) {
+        m_activeConnection->startNewInterrogationCycle();
+        m_giInQueue = false;
+    }
 }
 
 bool
@@ -732,6 +761,28 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
                     labels.push_back(*label);
                     Iec104Utility::log_info("%s Created data object for ASDU of type %s (%d) with CA: %i IOA: %i", beforeLog.c_str(),
                                             IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca, ioa);
+
+                    Iec104Utility::log_info("Check if ca %d and ioa %d of simple ts %d or double ts %d triggers a GI", ca, ioa, isTypeIdSTS(typeId), isTypeIdDTS(typeId));
+                    if (m_config->isTsAddressCgTriggering(ca, ioa) && isTypeIdTS(typeId)) {
+                        int valueTriggering = isTypeIdSTS(typeId) ? 0 : 1; // if it is a simple TS 0 is 0 if it is a double 0 is 1 because 01 is 0, 10 is 1, 11 is transient
+                        Iec104Utility::log_info("It triggers a GI, value to trigger : %d", valueTriggering);
+                        for (auto datapoint : *(datapoints.back()->getData().getDpVec())) {
+                            Iec104Utility::log_info("Checking dtp : %s", datapoint->getName().c_str());
+                            if (datapoint->getName() == "do_value") {
+                                Iec104Utility::log_info("Do value found : %d", datapoint->getData().toInt());
+                                if (datapoint->getData().toInt() == valueTriggering) {
+                                    Iec104Utility::log_info("GI status : %d", getGiStatus());
+                                    if (getGiStatus() == GiStatus::STARTED && getGiStatus() == GiStatus::IN_PROGRESS) {
+                                        Iec104Utility::log_info("Set next GI in queue");
+                                        m_giInQueue = true;
+                                    } else {
+                                        Iec104Utility::log_info("Starting GI");
+                                        m_activeConnection->startNewInterrogationCycle();
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 else {
                     Iec104Utility::log_warn("%s ASDU type %s (%d) not supported for %s (CA: %i IOA: %i)", beforeLog.c_str(),

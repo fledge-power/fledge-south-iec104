@@ -35,6 +35,7 @@ public:
     bool Active() {return m_active;};
 
     bool sendInterrogationCommand(int ca);
+    void startNewInterrogationCycle();
 
     bool sendSingleCommand(int ca, int ioa, bool value, bool withTime, bool select, long msTimestamp);
     bool sendDoubleCommand(int ca, int ioa, int value, bool withTime, bool select, long msTimestamp);
@@ -48,7 +49,6 @@ private:
     void executePeriodicTasks();
     void prepareParameters();
     bool prepareConnection();
-    void startNewInterrogationCycle();
     void closeConnection();
 
     void m_sendConnectionStatusAudit(const std::string& auditType);
