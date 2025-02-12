@@ -75,8 +75,6 @@ public:
 
     void updateGiStatus(GiStatus newState);
 
-    bool sendCnxLossStatus(bool value);
-
     GiStatus getGiStatus();
 
     static bool isMessageTypeMatching(int expectedType, int rcvdType);
@@ -94,8 +92,6 @@ private:
     std::vector<std::shared_ptr<DataExchangeDefinition>> m_listOfStationGroupDatapoints;
 
     std::shared_ptr<IEC104ClientConfig> m_config;
-
-    Datapoint* m_createCnxLossStatus(std::shared_ptr<DataExchangeDefinition> dp, bool value, uint64_t timestamp);
 
     class OutstandingCommand {
     public:

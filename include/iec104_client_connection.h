@@ -97,7 +97,6 @@ private:
     bool m_startDtSent = false;
 
     bool m_giRequested = false; /* Ask for a request GI to be sent. Triggered by the receptions of messages flagges gi". */
-
     bool m_cnxLostStatusSent = false; /* cnxLostStatus sent after reconnect */
 
     bool m_timeSynchronized = false;

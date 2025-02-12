@@ -68,8 +68,6 @@ public:
 
     std::string& GetConnxStatusSignal() {return m_connxStatus;};
 
-    std::string& GetCnxLossStatusId() {return m_cnxLossStatusId;};
-
     std::string& GetPrivateKey() {return m_privateKey;};
     std::string& GetOwnCertificate() {return m_ownCertificate;};
     std::vector<std::string>& GetRemoteCertificates() {return m_remoteCertificates;};
@@ -96,8 +94,6 @@ public:
     std::string* checkExchangeDataLayer(int typeId, int ca, int ioa);
 
     std::shared_ptr<DataExchangeDefinition> getExchangeDefinitionByLabel(std::string& label);
-
-    std::shared_ptr<DataExchangeDefinition> getCnxLossStatusDatapoint();
 
     int GetMaxRedGroups() const {return m_max_red_groups;};
 
@@ -144,9 +140,6 @@ private:
     bool m_tlsConfigComplete = false; /* flag if tls configuration is read */
 
     std::string m_connxStatus = ""; /* "asset" name for south plugin monitoring event */
-
-    bool m_sendCnxLossStatus = false; /* send info when GI is complete after connection loss */
-    std::string m_cnxLossStatusId = ""; /* assed ID of the connection loss indication data point */
 
     std::string m_privateKey = "";
     std::string m_ownCertificate = "";

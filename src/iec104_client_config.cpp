@@ -451,23 +451,6 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             else {
                 Iec104Utility::log_error("%s south_monitoring is missing \"asset\" element", beforeLog.c_str());
             }
-
-            if (southMonitoring.HasMember("cnx_loss_status_id")) {
-                if (southMonitoring["cnx_loss_status_id"].IsString()) {
-
-                    m_cnxLossStatusId = southMonitoring["cnx_loss_status_id"].GetString();
-
-                    if (m_cnxLossStatusId.empty()) {
-                        m_sendCnxLossStatus = false;
-                    }
-                    else {
-                        m_sendCnxLossStatus = true;
-                    }
-                }
-                else {
-                    Iec104Utility::log_error("%s south_monitoring \"cnx_loss_status_id\" element is not a string", beforeLog.c_str());
-                }
-            }
         }
         else {
             Iec104Utility::log_error("%s south_monitoring is not an object", beforeLog.c_str());
@@ -1069,35 +1052,6 @@ IEC104ClientConfig::getExchangeDefinitionByLabel(std::string& label)
                 }
             }
         }
-    }
-
-    return nullptr;
-}
-
-std::shared_ptr<DataExchangeDefinition>
-IEC104ClientConfig::getCnxLossStatusDatapoint()
-{
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::getCnxLossStatusDatapoint -";
-    if (m_sendCnxLossStatus) {
-        auto cnxLossStatusDp = getExchangeDefinitionByLabel(m_cnxLossStatusId);
-
-        if (cnxLossStatusDp != nullptr) {
-            if ((cnxLossStatusDp->typeId == M_SP_NA_1) || (cnxLossStatusDp->typeId == M_SP_TB_1)) {
-                return cnxLossStatusDp;
-            }
-
-            Iec104Utility::log_warn("%s Data point for cnx_loss_status_id is not a single point status: %s (%d)", beforeLog.c_str(),
-                                    IEC104ClientConfig::getStringFromTypeID(cnxLossStatusDp->typeId).c_str(), cnxLossStatusDp->typeId);
-        }
-        else {
-            Iec104Utility::log_warn("%s Data point for cnx_loss_status_id '%s' not found in exchange data", beforeLog.c_str(),
-                                    m_cnxLossStatusId.c_str());
-        }
-
-        m_sendCnxLossStatus = false;
-    }
-    else {
-        Iec104Utility::log_debug("%s Connection loss status message disabled", beforeLog.c_str());
     }
 
     return nullptr;
