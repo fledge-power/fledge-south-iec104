@@ -58,8 +58,7 @@ static string protocol_config = QUOTE({
                 "time_sync" : 1
             },
             "south_monitoring" : {
-                "asset": "CONSTAT-1",
-                "cnx_loss_status_id" : "CNXLOSS-1"
+                "asset": "CONSTAT-1"
             }
         }
     });
@@ -103,8 +102,7 @@ static string protocol_config_no_red = QUOTE({
                 "time_sync" : 1
             },
             "south_monitoring" : {
-                "asset": "CONSTAT-1",
-                "cnx_loss_status_id" : "CNXLOSS-1"
+                "asset": "CONSTAT-1"
             }
         }
     });
@@ -171,16 +169,6 @@ static string exchanged_data = QUOTE({
                           "name":"iec104",
                           "address":"41025-2002",
                           "typeid":"C_DC_NA_1"
-                       }
-                    ]
-                },
-                {
-                    "label":"TM-B-1",
-                    "protocols":[
-                       {
-                          "name":"iec104",
-                          "address":"41026-2001",
-                          "typeid":"M_ME_NA_1"
                        }
                     ]
                 }
@@ -250,16 +238,6 @@ static string exchanged_data_2 = QUOTE({
                           "name":"iec104",
                           "address":"41025-2002",
                           "typeid":"C_DC_NA_1"
-                       }
-                    ]
-                },
-                {
-                    "label":"CNXLOSS-1",
-                    "protocols":[
-                       {
-                          "name":"iec104",
-                          "address":"41026-2001",
-                          "typeid":"M_SP_NA_1"
                        }
                     ]
                 }
@@ -757,8 +735,8 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLostStatus)
 
     ASSERT_TRUE(containSouthEventsInRightOrder(storedLegacyReadings,expected_unique_events));
 
-    ASSERT_EQ(7, ingestCallbackCalled);
+    ASSERT_EQ(6, ingestCallbackCalled);
 
-    ASSERT_EQ(7, storedReadings.size());
+    ASSERT_EQ(6, storedReadings.size());
 
 }

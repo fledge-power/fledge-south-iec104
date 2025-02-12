@@ -244,8 +244,7 @@ static string protocol_config_broken4 = QUOTE({
                 "time_sync" : 1
             },
             "south_monitoring" : {
-                "asset": "CONSTAT-1",
-                "cnx_loss_status_id" : ""
+                "asset": "CONSTAT-1"
             }
         }
     });
