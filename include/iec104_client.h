@@ -142,9 +142,6 @@ private:
 
     bool m_started = false;
 
-    // Boolean saying if a gi asking is waiting to be send. If true, as soon as the current gi will end a new one will be triggered and this will be set to false.
-    bool m_giInQueue = false;
-
     std::shared_ptr<std::thread> m_monitoringThread;
     void _monitoringThread();
 
@@ -267,6 +264,12 @@ private:
                                 unsigned int ca, CS101_ASDU asdu,
                                 InformationObject io, uint64_t ioa,
                                 std::shared_ptr<OutstandingCommand> outstandingCommand);
+
+    bool isAsduTriggerGi(std::vector<Datapoint*>& datapoints,
+                            unsigned int ca,
+                            CS101_ASDU asdu,
+                            uint64_t ioa,
+                            IEC60870_5_TypeID typeId);
 
     // Format 2019-01-01 10:00:00.123456+08:00
     static std::string CP56Time2aToString(const CP56Time2a ts)

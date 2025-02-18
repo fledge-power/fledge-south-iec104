@@ -44,6 +44,15 @@ public:
     bool sendSetpointScaled(int ca, int ioa, int value, bool withTime, long msTimestamp);
     bool sendSetpointShort(int ca, int ioa, float value, bool withTime, long msTimestamp);
 
+    // Getter and setter for m_giRequested
+    void setGiRequested(bool value){
+        m_giRequested = value;
+    }
+
+    bool getGiRequested(){
+        return m_giRequested;
+    }
+
 private:
 
     void executePeriodicTasks();
@@ -86,6 +95,8 @@ private:
 
     bool m_started = false;
     bool m_startDtSent = false;
+
+    bool m_giRequested = false; /* Ask for a request GI to be sent. Triggered by the receptions of messages flagges gi". */
 
     bool m_cnxLostStatusSent = false; /* cnxLostStatus sent after reconnect */
 
