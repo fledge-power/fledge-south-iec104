@@ -578,9 +578,9 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLost)
 
     Thread_sleep(1000);
 
-    ASSERT_EQ(8, ingestCallbackCalled);
+    ASSERT_EQ(6, ingestCallbackCalled);
 
-    ASSERT_EQ(8, storedReadings.size());
+    ASSERT_EQ(6, storedReadings.size());
 
     vector<string> expected_unique_events;
 
@@ -596,22 +596,21 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLost)
 
     int i = 0;
 
+    // TM-1 41025-4202832
     ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[i]));
     ASSERT_FALSE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
 
+    // TM-2 41025-4202852
     ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[i]));
     ASSERT_FALSE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
 
+    // TS-1 41025-4206948
     ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[i]));
     ASSERT_FALSE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
 
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[i]));
-    ASSERT_FALSE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
-
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++])); // TM-1 41025-4202832
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++])); // TM-2 41025-4202852
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++])); // TS-1 41025-4206948
 }
 
 TEST_F(LegacyConnectionHandlingTest, ConnectionLostReconnect)
@@ -653,16 +652,14 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLostReconnect)
     expected_unique_events.push_back("{\"connx_status\":\"not connected\"}");
 
     ASSERT_TRUE(containSouthEventsInRightOrder(storedLegacyReadings,expected_unique_events));
-    
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[0]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[1]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[2]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[3]));
 
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[4]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[5]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[6]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[7]));
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[0])); // TM-1 41025-4202832
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[1])); // TM-2 41025-4202852
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[2])); // TS-1 41025-4206948
+
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[3])); // TM-1 41025-4202832
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[4])); // TM-2 41025-4202852
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[5])); // TS-1 41025-4206948
 }
 
 TEST_F(LegacyConnectionHandlingTest, SendConnectionStatusAfterRequestFromNorth)
@@ -677,9 +674,9 @@ TEST_F(LegacyConnectionHandlingTest, SendConnectionStatusAfterRequestFromNorth)
 
     bool operationResult = iec104->operation("request_connection_status", 0, nullptr);
 
-    ASSERT_EQ(4, ingestCallbackCalled);
+    ASSERT_EQ(3, ingestCallbackCalled);
 
-    ASSERT_EQ(4, storedReadings.size());
+    ASSERT_EQ(3, storedReadings.size());
 
     vector<string> expected_unique_events;
 
@@ -687,11 +684,9 @@ TEST_F(LegacyConnectionHandlingTest, SendConnectionStatusAfterRequestFromNorth)
 
     ASSERT_TRUE(containSouthEventsInRightOrder(storedLegacyReadings,expected_unique_events));
 
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[0]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[1]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[2]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[3]));
-
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[0])); // TM-1 41025-4202832
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[1])); // TM-2 41025-4202852
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[2])); // TS-1 41025-4206948
 }
 
 TEST_F(LegacyConnectionHandlingTest, ConnectionLostStatus)
