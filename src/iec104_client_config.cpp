@@ -15,12 +15,14 @@
 #define JSON_DATAPOINTS "datapoints"
 #define JSON_PROTOCOLS "protocols"
 #define JSON_LABEL "label"
+#define JSON_PIVOT_SUBTYPES "pivot_subtypes"
 
 #define PROTOCOL_IEC104 "iec104"
 #define JSON_PROT_NAME "name"
 #define JSON_PROT_ADDR "address"
 #define JSON_PROT_TYPEID "typeid"
 #define JSON_PROT_GI_GROUPS "gi_groups"
+#define JSON_TRIGGER_SOUTH_GI_PIVOT_SUBTYPE "trigger_south_gi"
 
 using namespace rapidjson;
 using namespace std;
@@ -1149,6 +1151,17 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
 
         string label = datapoint[JSON_LABEL].GetString();
 
+
+        bool isGiTriggeringTs = false;
+        if (datapoint.HasMember(JSON_PIVOT_SUBTYPES) && datapoint[JSON_PIVOT_SUBTYPES].IsArray()) {
+            for (const Value &subtype : datapoint[JSON_PIVOT_SUBTYPES].GetArray()) {
+                if (subtype.IsString() && subtype.GetString() == string(JSON_TRIGGER_SOUTH_GI_PIVOT_SUBTYPE)) {
+                    isGiTriggeringTs = true;
+                    break;
+                }
+            }
+        }
+
         if (!datapoint.HasMember(JSON_PROTOCOLS) || !datapoint[JSON_PROTOCOLS].IsArray()) {
             Iec104Utility::log_error("%s %s does not exist or is not an array", beforeLog.c_str(), JSON_PROTOCOLS);
             return;
@@ -1168,8 +1181,7 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
             
             string protocolName = protocol[JSON_PROT_NAME].GetString();
 
-            if (protocolName == PROTOCOL_IEC104)
-            {
+            if (protocolName == PROTOCOL_IEC104) {
                 int giGroups = 0;
 
                 if (!protocol.HasMember(JSON_PROT_ADDR) || !protocol[JSON_PROT_ADDR].IsString()) {
@@ -1185,7 +1197,6 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                 string typeIdStr = protocol[JSON_PROT_TYPEID].GetString();
 
                 if (protocol.HasMember(JSON_PROT_GI_GROUPS)) {
-
                     if(protocol[JSON_PROT_GI_GROUPS].IsString()) {
                         string giGroupsStr = protocol["gi_groups"].GetString();
 
@@ -1196,11 +1207,10 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                                 giGroups = 1;
                             }
                         }
-                    }
-                    else {
+                    } else {
                         Iec104Utility::log_warn("%s %s value is not a string", beforeLog.c_str(),
                                                 JSON_PROT_GI_GROUPS);
-                    } 
+                    }
                 }
 
                 Iec104Utility::log_debug("%s GI GROUPS = %i", beforeLog.c_str(), giGroups);
@@ -1238,9 +1248,13 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                         Iec104Utility::log_debug("%s  Added exchange data %i:%i type: %i (%s)", beforeLog.c_str(), ca, ioa, def->typeId,
                                                 typeIdStr.c_str());
                         ExchangeDefinition()[ca][ioa] = def;
+
+                        if (isGiTriggeringTs) {
+                            Iec104Utility::log_debug("Adding TS %s with ca %d ioa %d to GI triggering one", def->label, def->ca, def->ioa);
+                            m_cgTriggeringTsAdresses.insert(make_pair(ca, ioa));
+                        }
                     }
-                }
-                else {
+                } else {
                     Iec104Utility::log_error("%s  %s value does not follow format 'XXX-YYY': %s", beforeLog.c_str(), JSON_PROT_ADDR,
                                             address.c_str());
                     return;

@@ -265,6 +265,12 @@ private:
                                 InformationObject io, uint64_t ioa,
                                 std::shared_ptr<OutstandingCommand> outstandingCommand);
 
+    bool isAsduTriggerGi(std::vector<Datapoint*>& datapoints,
+                            unsigned int ca,
+                            CS101_ASDU asdu,
+                            uint64_t ioa,
+                            IEC60870_5_TypeID typeId);
+
     // Format 2019-01-01 10:00:00.123456+08:00
     static std::string CP56Time2aToString(const CP56Time2a ts)
     {

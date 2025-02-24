@@ -5,6 +5,8 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <utility>
+#include <unordered_set>
 
 #include <rapidjson/document.h>
 
@@ -18,10 +20,20 @@ struct DataExchangeDefinition {
     int giGroups = 0;
 };
 
+// Define a custom hash function for std::pair<T, U>
+template <typename T, typename U>
+struct pairHash {
+    size_t operator()(const std::pair<T, U>& p) const {
+        size_t h1 = std::hash<T>{}(p.first);
+        size_t h2 = std::hash<U>{}(p.second);
+        return h1 ^ (h2 << 1); // Combine the two hash values
+    }
+};
+
 class IEC104ClientConfig
 {
 public:
-    IEC104ClientConfig() {m_exchangeDefinitions.clear();};
+    IEC104ClientConfig() = default;
     //IEC104ClientConfig(const std::string& protocolConfig, const std::string& exchangeConfig);
     ~IEC104ClientConfig() = default;
 
@@ -69,6 +81,13 @@ public:
 
     std::map<int, std::map<int, std::shared_ptr<DataExchangeDefinition>>>& ExchangeDefinition() {return m_exchangeDefinitions;};
 
+    /**
+     * Check if a CA / IOA pair is in the CG triggering TS address set
+     *
+     * @return True if the given pair is present in the address set
+     */
+    bool isTsAddressCgTriggering(int ca, int ioa) { return m_cgTriggeringTsAdresses.find(std::make_pair(ca, ioa)) != m_cgTriggeringTsAdresses.end(); }
+
     std::vector<int>& ListOfCAs() {return m_listOfCAs;};
 
     static int getTypeIdFromString(const std::string& name);
@@ -94,6 +113,9 @@ private:
     int m_max_red_groups = 2;
 
     std::map<int, std::map<int, std::shared_ptr<DataExchangeDefinition>>> m_exchangeDefinitions;
+
+    /* Set of TS addresses that triggers a CG if the TS value is 0. First member is ca, second is ioa */
+    std::unordered_set<std::pair<int, int>, pairHash<int, int>> m_cgTriggeringTsAdresses;
 
     std::vector<int> m_listOfCAs;
 

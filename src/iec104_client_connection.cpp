@@ -678,6 +678,11 @@ IEC104ClientConnection::executePeriodicTasks()
                         Iec104Utility::log_debug("%s Starting GI cycle after end of init", beforeLog.c_str());
                         startNewInterrogationCycle();
                     }
+                    if (getGiRequested() && (m_client->getGiStatus() == IEC104Client::GiStatus::FAILED || m_client->getGiStatus() == IEC104Client::GiStatus::FINISHED)) {
+                        Iec104Utility::log_debug("%s Starting GI cycle on request.", beforeLog.c_str());
+                        setGiRequested(false);
+                        startNewInterrogationCycle();
+                    }
                 }
             }
         }

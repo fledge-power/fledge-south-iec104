@@ -40,6 +40,30 @@ getMonotonicTimeInMs()
     return timeVal;
 }
 
+static bool isTypeIdSTS(IEC60870_5_TypeID typeId) {
+    if (typeId == M_SP_NA_1 || typeId == M_SP_TA_1 || typeId == M_SP_TB_1 || typeId == M_PS_NA_1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static bool isTypeIdDTS(IEC60870_5_TypeID typeId) {
+    if (typeId == M_DP_NA_1 || typeId == M_DP_TA_1 || typeId == M_DP_TB_1 || typeId == M_EP_TA_1 || typeId == M_EP_TD_1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static bool isTypeIdTS(IEC60870_5_TypeID typeId) {
+    if (isTypeIdSTS(typeId) || isTypeIdDTS(typeId)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 template <class T>
 Datapoint* IEC104Client::m_createDatapoint(const std::string& dataname, const T value)
 {
@@ -524,6 +548,13 @@ IEC104Client::updateGiStatus(GiStatus newState)
     m_giStatus = newState;
 
     sendSouthMonitoringEvent(false, true);
+
+    #ifdef UNIT_TEST
+        // Simulated longer GI
+        if(newState == GiStatus::STARTED) {
+            Thread_sleep(200);
+        }
+    #endif
 }
 
 bool
@@ -732,6 +763,9 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
                     labels.push_back(*label);
                     Iec104Utility::log_info("%s Created data object for ASDU of type %s (%d) with CA: %i IOA: %i", beforeLog.c_str(),
                                             IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca, ioa);
+                    if(isAsduTriggerGi(datapoints, ca, asdu, ioa, typeId)){
+                        m_activeConnection->setGiRequested(true);
+                    }
                 }
                 else {
                     Iec104Utility::log_warn("%s ASDU type %s (%d) not supported for %s (CA: %i IOA: %i)", beforeLog.c_str(),
@@ -759,6 +793,29 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
     }
 
     return handledAsdu;
+}
+
+bool IEC104Client::isAsduTriggerGi(vector<Datapoint*>& datapoints,
+                            unsigned int ca,
+                            CS101_ASDU asdu,
+                            uint64_t ioa,
+                            IEC60870_5_TypeID typeId) {
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::isAsduTriggerGi -";
+    if (m_config->isTsAddressCgTriggering(ca, ioa) && isTypeIdTS(typeId) && (CS101_ASDU_getCOT(asdu) != CS101_CauseOfTransmission::CS101_COT_INTERROGATED_BY_STATION)) {
+        int valueTriggering = isTypeIdSTS(typeId) ? 0 : 1; // if it is a simple TS 0 is 0 if it is a double 0 is 1 because 01 is 0, 10 is 1, 11 is transient
+        for (auto datapoint : *(datapoints.back()->getData().getDpVec())) {
+            if (datapoint->getName() == "do_value" && datapoint->getData().toInt() == valueTriggering) {
+                if (m_activeConnection.get() == nullptr) {
+                    Iec104Utility::log_info("%s No active connexion, skip GI request.", beforeLog.c_str());
+                    return false;
+                }
+                if(!m_activeConnection->getGiRequested()){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 // Each of the following function handle a specific type of ASDU. They cast the
