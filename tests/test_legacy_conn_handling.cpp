@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #include "cs104_slave.h"
 #include <lib60870/hal_thread.h>
@@ -58,8 +59,7 @@ static string protocol_config = QUOTE({
                 "time_sync" : 1
             },
             "south_monitoring" : {
-                "asset": "CONSTAT-1",
-                "cnx_loss_status_id" : "CNXLOSS-1"
+                "asset": "CONSTAT-1"
             }
         }
     });
@@ -100,11 +100,10 @@ static string protocol_config_no_red = QUOTE({
                 "utc_time" : false,
                 "cmd_with_timetag" : false,
                 "cmd_parallel" : 0,
-                "time_sync" : 1
+                "time_sync" : 120
             },
             "south_monitoring" : {
-                "asset": "CONSTAT-1",
-                "cnx_loss_status_id" : "CNXLOSS-1"
+                "asset": "CONSTAT-1"
             }
         }
     });
@@ -171,16 +170,6 @@ static string exchanged_data = QUOTE({
                           "name":"iec104",
                           "address":"41025-2002",
                           "typeid":"C_DC_NA_1"
-                       }
-                    ]
-                },
-                {
-                    "label":"TM-B-1",
-                    "protocols":[
-                       {
-                          "name":"iec104",
-                          "address":"41026-2001",
-                          "typeid":"M_ME_NA_1"
                        }
                     ]
                 }
@@ -250,16 +239,6 @@ static string exchanged_data_2 = QUOTE({
                           "name":"iec104",
                           "address":"41025-2002",
                           "typeid":"C_DC_NA_1"
-                       }
-                    ]
-                },
-                {
-                    "label":"CNXLOSS-1",
-                    "protocols":[
-                       {
-                          "name":"iec104",
-                          "address":"41026-2001",
-                          "typeid":"M_SP_NA_1"
                        }
                     ]
                 }
@@ -543,14 +522,14 @@ protected:
         }
     }
 
-    
+
     bool
     containsString(vector<string> array, string str){
         return std::find(array.begin(),array.end(),str) != array.end();
     }
 
 
-    bool 
+    bool
     containSouthEventsInRightOrder(vector<Reading*> readings, vector<string> expected_unique_events){
         vector<string> unique_events;
 
@@ -560,7 +539,7 @@ protected:
 
             if(!containsString(unique_events,south_event_value)){
                 unique_events.push_back(south_event_value);
-            }    
+            }
         }
 
         return unique_events == expected_unique_events;
@@ -568,6 +547,32 @@ protected:
 
 };
 
+static bool
+interrogationHandler(void* parameter, IMasterConnection connection, CS101_ASDU asdu, uint8_t qoi)
+{
+    printf("Received interrogation for CA: %i QOI: %i\n", CS101_ASDU_getCA(asdu), qoi);
+
+    // Send ACT_CON (confirmation d'activation)
+    CS101_ASDU_setCOT(asdu, CS101_COT_ACTIVATION_CON);
+    IMasterConnection_sendASDU(connection, asdu);
+
+
+
+    // Fake Data
+    CS101_ASDU newAsdu = CS101_ASDU_create(IMasterConnection_getApplicationLayerParameters(connection), false, CS101_COT_INTERROGATED_BY_STATION, 0, 41025, false, false);
+    InformationObject io = (InformationObject) MeasuredValueNormalized_create(NULL, 4202832, 0.5f, IEC60870_QUALITY_GOOD);
+    CS101_ASDU_addInformationObject(newAsdu, io);
+    IMasterConnection_sendASDU(connection, newAsdu);
+
+    InformationObject_destroy(io);
+    CS101_ASDU_destroy(newAsdu);
+
+    // Send ACT_TERM (terminaison d'activation)
+    CS101_ASDU_setCOT(asdu, CS101_COT_ACTIVATION_TERMINATION);
+    IMasterConnection_sendASDU(connection, asdu);
+
+    return true;
+}
 
 TEST_F(LegacyConnectionHandlingTest, ConnectionLost)
 {
@@ -600,9 +605,9 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLost)
 
     Thread_sleep(1000);
 
-    ASSERT_EQ(8, ingestCallbackCalled);
+    ASSERT_EQ(6, ingestCallbackCalled);
 
-    ASSERT_EQ(8, storedReadings.size());
+    ASSERT_EQ(6, storedReadings.size());
 
     vector<string> expected_unique_events;
 
@@ -618,22 +623,21 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLost)
 
     int i = 0;
 
+    // TM-1 41025-4202832
     ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[i]));
     ASSERT_FALSE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
 
+    // TM-2 41025-4202852
     ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[i]));
     ASSERT_FALSE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
 
+    // TS-1 41025-4206948
     ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[i]));
     ASSERT_FALSE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
 
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[i]));
-    ASSERT_FALSE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
-
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++]));
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++])); // TM-1 41025-4202832
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++])); // TM-2 41025-4202852
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[i++])); // TS-1 41025-4206948
 }
 
 TEST_F(LegacyConnectionHandlingTest, ConnectionLostReconnect)
@@ -648,14 +652,13 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLostReconnect)
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
     CS104_Slave_start(slave);
-    
-    
+
     startIEC104();
-    
+
     Thread_sleep(500);
-    
+
     CS104_Slave_stop(slave);
-  
+
     Thread_sleep(2000);
 
     CS104_Slave_start(slave);
@@ -675,16 +678,14 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLostReconnect)
     expected_unique_events.push_back("{\"connx_status\":\"not connected\"}");
 
     ASSERT_TRUE(containSouthEventsInRightOrder(storedLegacyReadings,expected_unique_events));
-    
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[0]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[1]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[2]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[3]));
 
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[4]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[5]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[6]));
-    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[7]));
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[0])); // TM-1 41025-4202832
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[1])); // TM-2 41025-4202852
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[2])); // TS-1 41025-4206948
+
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[3])); // TM-1 41025-4202832
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[4])); // TM-2 41025-4202852
+    ASSERT_TRUE(IsReadingWithQualityNonTopcial(storedReadings[5])); // TS-1 41025-4206948
 }
 
 TEST_F(LegacyConnectionHandlingTest, SendConnectionStatusAfterRequestFromNorth)
@@ -699,9 +700,9 @@ TEST_F(LegacyConnectionHandlingTest, SendConnectionStatusAfterRequestFromNorth)
 
     bool operationResult = iec104->operation("request_connection_status", 0, nullptr);
 
-    ASSERT_EQ(4, ingestCallbackCalled);
+    ASSERT_EQ(3, ingestCallbackCalled);
 
-    ASSERT_EQ(4, storedReadings.size());
+    ASSERT_EQ(3, storedReadings.size());
 
     vector<string> expected_unique_events;
 
@@ -709,11 +710,62 @@ TEST_F(LegacyConnectionHandlingTest, SendConnectionStatusAfterRequestFromNorth)
 
     ASSERT_TRUE(containSouthEventsInRightOrder(storedLegacyReadings,expected_unique_events));
 
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[0]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[1]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[2]));
-    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[3]));
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[0])); // TM-1 41025-4202832
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[1])); // TM-2 41025-4202852
+    ASSERT_TRUE(IsReadingWithQualityInvalid(storedReadings[2])); // TS-1 41025-4206948
+}
 
+TEST_F(LegacyConnectionHandlingTest, SendConnectionStatusAfterRequestNorthStatusFromNorth)
+{
+
+    //----------------------------------------------------------------
+
+    ingestCallbackCalled = 0;
+    legacyIngestCallbackCalled = 0;
+
+    iec104->setJsonConfig(protocol_config_no_red, exchanged_data, tls_config);
+
+    CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
+    //Allow slave to respond GI to avoid closing connection
+    CS104_Slave_setInterrogationHandler(slave, interrogationHandler, NULL);
+    CS104_Slave_setLocalPort(slave, TEST_PORT);
+    CS104_Slave_start(slave);
+    startIEC104();
+    Thread_sleep(2000);
+
+    // Reset counters after initial connection
+    int initialIngestCalls = ingestCallbackCalled;
+    int initialLegacyIngestCalls = legacyIngestCallbackCalled;
+
+    PLUGIN_PARAMETER* params[1] = {};
+    PLUGIN_PARAMETER north_status_params_socket_finished = {"north_status", "init_socket_finished"};
+    params[0] = &north_status_params_socket_finished;
+
+    // Reset counters before testing multiple calls
+    int callsBeforeMultiple = legacyIngestCallbackCalled;
+
+    // Call 3 times consecutively - should only trigger 2 additional GIs
+    iec104->operation("north_status", 1, params);
+    Thread_sleep(50);
+    iec104->operation("north_status", 1, params);
+    Thread_sleep(50);
+    //Scheduled GI should be ignored for this one
+    iec104->operation("north_status", 1, params);
+    Thread_sleep(2000);
+
+    // Count the number of "gi_status":"started" events after the multiple calls
+    int giStartedCount = 0;
+    for (size_t i = callsBeforeMultiple; i < storedLegacyReadings.size(); i++) {
+        if (IsGiStatusStarted(storedLegacyReadings[i])) {
+            giStartedCount++;
+        }
+    }
+    // Should have only 2 GI started events (not 3) due to rate limiting
+    ASSERT_EQ(2, giStartedCount);
+
+    CS104_Slave_stop(slave);
+    CS104_Slave_destroy(slave);
 }
 
 TEST_F(LegacyConnectionHandlingTest, ConnectionLostStatus)
@@ -757,8 +809,8 @@ TEST_F(LegacyConnectionHandlingTest, ConnectionLostStatus)
 
     ASSERT_TRUE(containSouthEventsInRightOrder(storedLegacyReadings,expected_unique_events));
 
-    ASSERT_EQ(7, ingestCallbackCalled);
+    ASSERT_EQ(6, ingestCallbackCalled);
 
-    ASSERT_EQ(7, storedReadings.size());
+    ASSERT_EQ(6, storedReadings.size());
 
 }

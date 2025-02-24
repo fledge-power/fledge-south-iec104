@@ -14,6 +14,10 @@ project(iec104)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 message(STATUS ${CMAKE_CXX_FLAGS})
 
 if (${CMAKE_BUILD_TYPE} STREQUAL Coverage)
@@ -42,8 +46,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL Coverage)
   )
 else()
   message("Build without Coverage") 
-
-  set(CMAKE_CXX_FLAGS "-std=c++11 -O3")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 endif()
 
 # Generation version header file

@@ -12,7 +12,6 @@ class IEC104Client;
 class IEC104ClientRedGroup;
 class IEC104ClientConfig;
 class RedGroupCon;
-
 class IEC104ClientConnection
 {
 public:
@@ -35,6 +34,7 @@ public:
     bool Active() {return m_active;};
 
     bool sendInterrogationCommand(int ca);
+    void startNewInterrogationCycle();
 
     bool sendSingleCommand(int ca, int ioa, bool value, bool withTime, bool select, long msTimestamp);
     bool sendDoubleCommand(int ca, int ioa, int value, bool withTime, bool select, long msTimestamp);
@@ -43,12 +43,20 @@ public:
     bool sendSetpointScaled(int ca, int ioa, int value, bool withTime, long msTimestamp);
     bool sendSetpointShort(int ca, int ioa, float value, bool withTime, long msTimestamp);
 
+    // Getter and setter for m_giRequested
+    void setGiRequested(bool value){
+        m_giRequested = value;
+    }
+
+    bool getGiRequested(){
+        return m_giRequested;
+    }
+
 private:
 
     void executePeriodicTasks();
     void prepareParameters();
     bool prepareConnection();
-    void startNewInterrogationCycle();
     void closeConnection();
 
     void m_sendConnectionStatusAudit(const std::string& auditType);
@@ -67,7 +75,6 @@ private:
     std::shared_ptr<IEC104ClientRedGroup> m_redGroup;
     std::shared_ptr<RedGroupCon> m_redGroupConnection;
     std::shared_ptr<IEC104Client> m_client;
-
     /* global state information */
     bool m_connected = false; /* connection is in connected state */
     bool m_active = false;    /* connection is connected and active */
@@ -75,7 +82,6 @@ private:
 
     bool m_connect = false; /* flag to indicate that the connection is to be establish */
     bool m_disconnect = false; /* flag to indicate that the connection has to be disconnected */
-
     int broadcastCA() const;
 
     std::mutex m_conLock;
@@ -87,6 +93,7 @@ private:
     bool m_started = false;
     bool m_startDtSent = false;
 
+    bool m_giRequested = false; /* Ask for a request GI to be sent. Triggered by the receptions of messages flagges gi". */
     bool m_cnxLostStatusSent = false; /* cnxLostStatus sent after reconnect */
 
     bool m_timeSynchronized = false;

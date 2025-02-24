@@ -5,6 +5,9 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <utility>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <rapidjson/document.h>
 
@@ -18,10 +21,20 @@ struct DataExchangeDefinition {
     int giGroups = 0;
 };
 
+// Define a custom hash function for std::pair<T, U>
+template <typename T, typename U>
+struct pairHash {
+    size_t operator()(const std::pair<T, U>& p) const {
+        size_t h1 = std::hash<T>{}(p.first);
+        size_t h2 = std::hash<U>{}(p.second);
+        return h1 ^ (h2 << 1); // Combine the two hash values
+    }
+};
+
 class IEC104ClientConfig
 {
 public:
-    IEC104ClientConfig() {m_exchangeDefinitions.clear();};
+    IEC104ClientConfig() = default;
     //IEC104ClientConfig(const std::string& protocolConfig, const std::string& exchangeConfig);
     ~IEC104ClientConfig() = default;
 
@@ -56,8 +69,6 @@ public:
 
     std::string& GetConnxStatusSignal() {return m_connxStatus;};
 
-    std::string& GetCnxLossStatusId() {return m_cnxLossStatusId;};
-
     std::string& GetPrivateKey() {return m_privateKey;};
     std::string& GetOwnCertificate() {return m_ownCertificate;};
     std::vector<std::string>& GetRemoteCertificates() {return m_remoteCertificates;};
@@ -69,6 +80,19 @@ public:
 
     std::map<int, std::map<int, std::shared_ptr<DataExchangeDefinition>>>& ExchangeDefinition() {return m_exchangeDefinitions;};
 
+    /**
+     * Check if a CA / IOA pair is in the CG triggering TS address set
+     *
+     * @return True if the given pair is present in the address set
+     */
+    int valueTsAddressCgTriggering(int ca, int ioa) {
+        auto it = m_cgTriggeringTsAdresses.find(std::make_pair(ca, ioa));
+        if (it == m_cgTriggeringTsAdresses.end()){
+            return -1;
+        }
+        return it->second;
+    }
+
     std::vector<int>& ListOfCAs() {return m_listOfCAs;};
 
     static int getTypeIdFromString(const std::string& name);
@@ -77,8 +101,6 @@ public:
     std::string* checkExchangeDataLayer(int typeId, int ca, int ioa);
 
     std::shared_ptr<DataExchangeDefinition> getExchangeDefinitionByLabel(std::string& label);
-
-    std::shared_ptr<DataExchangeDefinition> getCnxLossStatusDatapoint();
 
     int GetMaxRedGroups() const {return m_max_red_groups;};
 
@@ -94,6 +116,9 @@ private:
     int m_max_red_groups = 2;
 
     std::map<int, std::map<int, std::shared_ptr<DataExchangeDefinition>>> m_exchangeDefinitions;
+
+    /* Set of TS addresses that triggers a CG with its trigger value. First member of the pair is ca, second is ioa. The third is the trigger value */
+    std::unordered_map<std::pair<int, int>, int, pairHash<int, int>> m_cgTriggeringTsAdresses;
 
     std::vector<int> m_listOfCAs;
 
@@ -122,9 +147,6 @@ private:
     bool m_tlsConfigComplete = false; /* flag if tls configuration is read */
 
     std::string m_connxStatus = ""; /* "asset" name for south plugin monitoring event */
-
-    bool m_sendCnxLossStatus = false; /* send info when GI is complete after connection loss */
-    std::string m_cnxLossStatusId = ""; /* assed ID of the connection loss indication data point */
 
     std::string m_privateKey = "";
     std::string m_ownCertificate = "";

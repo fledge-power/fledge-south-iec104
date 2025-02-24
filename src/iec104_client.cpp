@@ -40,6 +40,18 @@ getMonotonicTimeInMs()
     return timeVal;
 }
 
+static bool isTypeIdSingleSP(IEC60870_5_TypeID typeId) {
+    return typeId == M_SP_NA_1 || typeId == M_SP_TA_1 || typeId == M_SP_TB_1;
+}
+
+static bool isTypeIdDoubleSP(IEC60870_5_TypeID typeId) {
+    return typeId == M_DP_NA_1 || typeId == M_DP_TA_1 || typeId == M_DP_TB_1;
+}
+
+static bool isTypeIdSP(IEC60870_5_TypeID typeId) {
+     return isTypeIdSingleSP(typeId) || isTypeIdDoubleSP(typeId);
+}
+
 template <class T>
 Datapoint* IEC104Client::m_createDatapoint(const std::string& dataname, const T value)
 {
@@ -115,7 +127,7 @@ static bool isSupportedCommand(int typeId)
 
 std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::checkForOutstandingCommand(int typeId, int ca, int ioa, const IEC104ClientConnection* connection)
 {
-    std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx);
+    std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx); //LCOV_EXCL_LINE
 
     for (std::shared_ptr<OutstandingCommand> command : m_outstandingCommands) {
         if ((command->typeId == typeId) && (command->ca == ca) && (command->ioa == ioa) && (command->clientCon.get() == connection)) {
@@ -128,8 +140,8 @@ std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::checkForOutstand
 
 void IEC104Client::checkOutstandingCommandTimeouts()
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::checkOutstandingCommandTimeouts -";
-    std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx);
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::checkOutstandingCommandTimeouts -"; //LCOV_EXCL_LINE
+    std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx); //LCOV_EXCL_LINE
     uint64_t currentTime = getMonotonicTimeInMs();
 
     std::vector<std::shared_ptr<OutstandingCommand>> listOfTimedoutCommands;
@@ -138,16 +150,16 @@ void IEC104Client::checkOutstandingCommandTimeouts()
     {
         if (command->actConReceived) {
             if (command->timeout + m_config->CmdExecTimeout() < currentTime) {
-                Iec104Utility::log_warn("%s ACT-TERM timeout for outstanding command - type: %s (%i) ca: %i ioa: %i", beforeLog.c_str(),
-                                        IEC104ClientConfig::getStringFromTypeID(command->typeId).c_str(), command->typeId,
+                Iec104Utility::log_warn("%s ACT-TERM timeout for outstanding command - type: %s (%i) ca: %i ioa: %i", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                        IEC104ClientConfig::getStringFromTypeID(command->typeId).c_str(), command->typeId, //LCOV_EXCL_LINE
                                         command->ca, command->ioa);
                 listOfTimedoutCommands.push_back(command);
             }
         }
         else {
             if (command->timeout + m_config->CmdExecTimeout() < currentTime) {
-                Iec104Utility::log_warn("%s ACT-CON timeout for outstanding command - type: %s (%i) ca: %i ioa: %i", beforeLog.c_str(),
-                                        IEC104ClientConfig::getStringFromTypeID(command->typeId).c_str(), command->typeId,
+                Iec104Utility::log_warn("%s ACT-CON timeout for outstanding command - type: %s (%i) ca: %i ioa: %i", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                        IEC104ClientConfig::getStringFromTypeID(command->typeId).c_str(), command->typeId, //LCOV_EXCL_LINE
                                         command->ca, command->ioa);
                 listOfTimedoutCommands.push_back(command);
             }
@@ -163,7 +175,7 @@ void IEC104Client::checkOutstandingCommandTimeouts()
 
 void IEC104Client::removeOutstandingCommand(std::shared_ptr<OutstandingCommand> command)
 {
-    std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx);
+    std::lock_guard<std::mutex> lock(m_outstandingCommandsMtx); //LCOV_EXCL_LINE
 
     // remove object command from m_outstandingCommands
     m_outstandingCommands.erase(std::remove(m_outstandingCommands.begin(), m_outstandingCommands.end(), command), m_outstandingCommands.end());
@@ -181,25 +193,14 @@ void IEC104Client::updateQualityForAllDataObjects(QualityDescriptor qd)
             if (dp) {
                 if (isDataPointInMonitoringDirection(dp))
                 {
-                    bool skipDatapoint = false;
+                    //TODO also add timestamp?
 
-                    if (m_config->GetCnxLossStatusId().empty() == false) {
-                        if (dp->label == m_config->GetCnxLossStatusId()) {
-                            skipDatapoint = true;
-                        }
+                    Datapoint* qualityUpdateDp = m_createQualityUpdateForDataObject(dp, &qd, nullptr);
+
+                    if (qualityUpdateDp) {
+                        datapoints.push_back(qualityUpdateDp);
+                        labels.push_back(dp->label);
                     }
-
-                    if (skipDatapoint == false) {
-                        //TODO also add timestamp?
-
-                        Datapoint* qualityUpdateDp = m_createQualityUpdateForDataObject(dp, &qd, nullptr);
-
-                        if (qualityUpdateDp) {
-                            datapoints.push_back(qualityUpdateDp);
-                            labels.push_back(dp->label);
-                        }
-                    }
-
                 }
             }
         }
@@ -340,52 +341,6 @@ Datapoint* IEC104Client::m_createDataObject(CS101_ASDU asdu, int64_t ioa, const 
     return new Datapoint("data_object", dpv);
 }
 
-Datapoint* IEC104Client::m_createCnxLossStatus(std::shared_ptr<DataExchangeDefinition> dp, bool value, uint64_t timestamp)
-{
-    auto* attributes = new vector<Datapoint*>;
-
-    attributes->push_back(m_createDatapoint("do_type", IEC104ClientConfig::getStringFromTypeID(dp->typeId)));
-
-    attributes->push_back(m_createDatapoint("do_ca", (long)dp->ca));
-
-    attributes->push_back(m_createDatapoint("do_oa", (long)0));
-
-    attributes->push_back(m_createDatapoint("do_cot", (long)3));
-
-    attributes->push_back(m_createDatapoint("do_test", (long)0));
-
-    attributes->push_back(m_createDatapoint("do_negative", (long)0));
-
-    attributes->push_back(m_createDatapoint("do_ioa", (long)dp->ioa));
-
-    if (value)
-        attributes->push_back(m_createDatapoint("do_value", 1L));
-    else
-        attributes->push_back(m_createDatapoint("do_value", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_iv", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_bl", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_ov", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_sb", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_nt", 0L));
-
-    attributes->push_back(m_createDatapoint("do_ts", (long)timestamp));
-
-    attributes->push_back(m_createDatapoint("do_ts_iv", 0L));
-
-    attributes->push_back(m_createDatapoint("do_ts_su", 0L));
-
-    attributes->push_back(m_createDatapoint("do_ts_sub", 0L));
-
-    DatapointValue dpv(attributes, true);
-
-    return new Datapoint("data_object", dpv);
-}
-
 void
 IEC104Client::sendData(vector<Datapoint*> datapoints,
                             const vector<std::string> labels)
@@ -405,30 +360,30 @@ IEC104Client::sendData(vector<Datapoint*> datapoints,
 IEC104Client::OutstandingCommand::OutstandingCommand(int typeId, int ca, int ioa, std::shared_ptr<IEC104ClientConnection> con):
     typeId(typeId), ca(ca), ioa(ioa), clientCon(con)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::OutstandingCommand::OutstandingCommand -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::OutstandingCommand::OutstandingCommand -"; //LCOV_EXCL_LINE
     timeout = getMonotonicTimeInMs();
-    Iec104Utility::log_debug("%s Created outstanding command: typeId=%s, CA=%d, IOA=%d, timeout=%d", beforeLog.c_str(),
-                            IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), ca, ioa, timeout);
+    Iec104Utility::log_debug("%s Created outstanding command: typeId=%s, CA=%d, IOA=%d, timeout=%d", beforeLog.c_str(), //LCOV_EXCL_LINE
+                            IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), ca, ioa, timeout); //LCOV_EXCL_LINE
 }
 
 void
 IEC104Client::sendSouthMonitoringEvent(bool connxStatus, bool giStatus)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSouthMonitoringEvent -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSouthMonitoringEvent -"; //LCOV_EXCL_LINE
     if (m_config == nullptr) {
-        Iec104Utility::log_error("%s Cannot send south event: Config is not defined", beforeLog.c_str());
+        Iec104Utility::log_error("%s Cannot send south event: Config is not defined", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
     if (m_config->GetConnxStatusSignal().empty()) {
-        Iec104Utility::log_warn("%s Cannot send south event: Connexion status signal is not defined", beforeLog.c_str());
+        Iec104Utility::log_warn("%s Cannot send south event: Connexion status signal is not defined", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
-    } 
+    }
 
     if ((connxStatus == false) && (giStatus == false)) {
-        Iec104Utility::log_debug("%s No data requested for south event", beforeLog.c_str());
+        Iec104Utility::log_debug("%s No data requested for south event", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
-    } 
+    }
 
     auto* attributes = new vector<Datapoint*>;
 
@@ -439,11 +394,11 @@ IEC104Client::sendSouthMonitoringEvent(bool connxStatus, bool giStatus)
         {
             case ConnectionStatus::NOT_CONNECTED:
                 eventDp = m_createDatapoint("connx_status", "not connected");
-                break;
+                break; //LCOV_EXCL_LINE
 
             case ConnectionStatus::STARTED:
                 eventDp = m_createDatapoint("connx_status", "started");
-                break;
+                break; //LCOV_EXCL_LINE
         }
 
         if (eventDp) {
@@ -458,23 +413,23 @@ IEC104Client::sendSouthMonitoringEvent(bool connxStatus, bool giStatus)
         {
             case GiStatus::STARTED:
                 eventDp = m_createDatapoint("gi_status", "started");
-                break;
+                break; //LCOV_EXCL_LINE
 
             case GiStatus::IN_PROGRESS:
                 eventDp = m_createDatapoint("gi_status", "in progress");
-                break;
+                break; //LCOV_EXCL_LINE
 
             case GiStatus::FAILED:
                 eventDp = m_createDatapoint("gi_status", "failed");
-                break;
+                break; //LCOV_EXCL_LINE
 
             case GiStatus::FINISHED:
                 eventDp = m_createDatapoint("gi_status", "finished");
-                break;
+                break; //LCOV_EXCL_LINE
 
             case GiStatus::IDLE:
                 eventDp = m_createDatapoint("gi_status", "idle");
-                break;
+                break; //LCOV_EXCL_LINE
         }
 
         if (eventDp) {
@@ -524,28 +479,13 @@ IEC104Client::updateGiStatus(GiStatus newState)
     m_giStatus = newState;
 
     sendSouthMonitoringEvent(false, true);
-}
 
-bool
-IEC104Client::sendCnxLossStatus(bool value)
-{
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendCnxLossStatus -";
-    std::shared_ptr<DataExchangeDefinition> dp = m_config->getCnxLossStatusDatapoint();
-
-    if (dp) {
-        Iec104Utility::log_info("%s send cnx_loss_status (data point: %s)", beforeLog.c_str(), dp->label.c_str());
-
-        Datapoint* cnxLossStatusDp = m_createCnxLossStatus(dp, value, Hal_getTimeInMs());
-
-        std::vector<Datapoint*> points;
-        points.push_back(cnxLossStatusDp);
-
-        m_iec104->ingest(dp->label, points);
-
-        return true;
-    }
-
-    return false;
+    #ifdef UNIT_TEST
+        // Simulated longer GI
+        if(newState == GiStatus::STARTED) {
+            Thread_sleep(200);
+        }
+    #endif
 }
 
 IEC104Client::GiStatus
@@ -577,7 +517,7 @@ isInterrogationResponse(CS101_ASDU asdu)
 bool
 IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU asdu)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handleASDU -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handleASDU -"; //LCOV_EXCL_LINE
     bool handledAsdu = true;
 
     vector<Datapoint*> datapoints;
@@ -592,7 +532,7 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
             updateGiStatus(GiStatus::IN_PROGRESS);
     }
 
-    Iec104Utility::log_debug("%s Received ASDU with CA: %i, interrogation response: %s", beforeLog.c_str(), ca, isResponse?"true":"false");
+    Iec104Utility::log_debug("%s Received ASDU with CA: %i, interrogation response: %s", beforeLog.c_str(), ca, isResponse?"true":"false"); //LCOV_EXCL_LINE
 
     for (int i = 0; i < CS101_ASDU_getNumberOfElements(asdu); i++)
     {
@@ -608,8 +548,8 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
 
             if (isSupportedCommand(typeId)) {
                 outstandingCommand = checkForOutstandingCommand(typeId, ca, ioa, connection);
-                Iec104Utility::log_debug("%s Found supported command type: %s (%d) (CA: %i IOA: %i)", beforeLog.c_str(),
-                                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca, ioa);
+                Iec104Utility::log_debug("%s Found supported command type: %s (%d) (CA: %i IOA: %i)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca, ioa); //LCOV_EXCL_LINE
             }
 
             if ((label != nullptr) && isResponse) {
@@ -618,8 +558,8 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
                 if (exgDef) {
                     if (isInStationGroup(exgDef)) {
                         removeFromListOfDatapoints(exgDef);
-                        Iec104Utility::log_debug("%s Removed station group datapoint for type %s (%d) with CA: %i IOA: %i", beforeLog.c_str(),
-                                                IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, label->c_str(), ca, ioa);
+                        Iec104Utility::log_debug("%s Removed station group datapoint for type %s (%d) with CA: %i IOA: %i", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                                IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, label->c_str(), ca, ioa); //LCOV_EXCL_LINE
                     }
                 }
             }
@@ -629,127 +569,130 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
                 case M_ME_NB_1:
                     if (label)
                         handle_M_ME_NB_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_SP_NA_1:
                     if (label)
                         handle_M_SP_NA_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_SP_TB_1:
                     if (label)
                         handle_M_SP_TB_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_DP_NA_1:
                     if (label)
                         handle_M_DP_NA_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_DP_TB_1:
                     if (label)
                         handle_M_DP_TB_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_ST_NA_1:
                     if (label)
                         handle_M_ST_NA_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_ST_TB_1:
                     if (label)
                         handle_M_ST_TB_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_ME_NA_1:
                     if (label)
                         handle_M_ME_NA_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_ME_TD_1:
                     if (label)
                         handle_M_ME_TD_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_ME_TE_1:
                     if (label)
                         handle_M_ME_TE_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_ME_NC_1:
                     if (label)
                         handle_M_ME_NC_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case M_ME_TF_1:
                     if (label)
                         handle_M_ME_TF_1(datapoints, *label, ca, asdu, io, ioa);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case C_SC_NA_1:
                 case C_SC_TA_1:
                     if (label)
                         handle_C_SC_NA_1(datapoints, *label, ca, asdu, io, ioa, outstandingCommand);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case C_DC_TA_1:
                 case C_DC_NA_1:
                     if (label)
                         handle_C_DC_NA_1(datapoints, *label, ca, asdu, io, ioa, outstandingCommand);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case C_RC_NA_1:
                 case C_RC_TA_1:
                     if (label)
                         handle_C_RC_NA_1(datapoints, *label, ca, asdu, io, ioa, outstandingCommand);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case C_SE_NA_1:
                 case C_SE_TA_1:
                     if (label)
                         handle_C_SE_NA_1(datapoints, *label, ca, asdu, io, ioa, outstandingCommand);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case C_SE_NB_1:
                 case C_SE_TB_1:
                     if (label)
                         handle_C_SE_NB_1(datapoints, *label, ca, asdu, io, ioa, outstandingCommand);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 case C_SE_NC_1:
                 case C_SE_TC_1:
                     if (label)
                         handle_C_SE_NC_1(datapoints, *label, ca, asdu, io, ioa, outstandingCommand);
-                    break;
+                    break; //LCOV_EXCL_LINE
 
                 default:
                     handledAsdu = false;
-                    break;
+                    break; //LCOV_EXCL_LINE
             }
 
             if (label) {
                 if (handledAsdu) {
                     labels.push_back(*label);
-                    Iec104Utility::log_info("%s Created data object for ASDU of type %s (%d) with CA: %i IOA: %i", beforeLog.c_str(),
-                                            IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca, ioa);
+                    Iec104Utility::log_info("%s Created data object for ASDU of type %s (%d) with CA: %i IOA: %i", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                            IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca, ioa); //LCOV_EXCL_LINE
+                    if(isAsduTriggerGi(datapoints, ca, asdu, ioa, typeId)){
+                        m_activeConnection->setGiRequested(true);
+                    }
                 }
                 else {
-                    Iec104Utility::log_warn("%s ASDU type %s (%d) not supported for %s (CA: %i IOA: %i)", beforeLog.c_str(),
-                                            IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, label->c_str(), ca, ioa);
+                    Iec104Utility::log_warn("%s ASDU type %s (%d) not supported for %s (CA: %i IOA: %i)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                            IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, label->c_str(), ca, ioa); //LCOV_EXCL_LINE
                 }
             }
             else {
                 if (handledAsdu) {
-                    Iec104Utility::log_debug("%s No data point found in exchange configuration for type %s (%d) with CA: %i IOA: %i",
-                                            beforeLog.c_str(), IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca, ioa);
+                    Iec104Utility::log_debug("%s No data point found in exchange configuration for type %s (%d) with CA: %i IOA: %i", //LCOV_EXCL_LINE
+                                            beforeLog.c_str(), IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca, ioa); //LCOV_EXCL_LINE
                 }
             }
 
             InformationObject_destroy(io);
         }
         else {
-            Iec104Utility::log_error("%s Received ASDU with invalid or unknown information object for type %s (%d) CA: %i", beforeLog.c_str(),
-                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca);
+            Iec104Utility::log_error("%s Received ASDU with invalid or unknown information object for type %s (%d) CA: %i", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca); //LCOV_EXCL_LINE
         }
     }
 
@@ -759,6 +702,46 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
     }
 
     return handledAsdu;
+}
+
+bool IEC104Client::isAsduTriggerGi(vector<Datapoint*>& datapoints,
+                            unsigned int ca,
+                            CS101_ASDU asdu,
+                            uint64_t ioa,
+                            IEC60870_5_TypeID typeId) {
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::isAsduTriggerGi -"; //LCOV_EXCL_LINE
+    int trigger_value = m_config->valueTsAddressCgTriggering(ca, ioa);
+    if ((trigger_value != -1) && isTypeIdSP(typeId) && (CS101_ASDU_getCOT(asdu) != CS101_CauseOfTransmission::CS101_COT_INTERROGATED_BY_STATION)) {
+        for (auto datapoint : *(datapoints.back()->getData().getDpVec())) {
+            if (datapoint->getName() == "do_value") {
+                // Single TS case
+                if ((isTypeIdSingleSP(typeId) && datapoint->getData().toInt() == trigger_value)) {
+                    if (m_activeConnection.get() == nullptr) {
+                        Iec104Utility::log_info("%s No active connexion, skip GI request.", beforeLog.c_str()); //LCOV_EXCL_LINE
+                        return false;
+                    }
+                    if(!m_activeConnection->getGiRequested()){
+                        return true;
+                    }
+                }
+                // Double TS case
+                else if (isTypeIdDoubleSP(typeId)) {
+                    int datapoint_value = datapoint->getData().toInt();
+                    // For double TS, 0 is represented by the binary number 01 = 1 and 1 is represented by the binary number 10 = 2
+                    if ((datapoint_value == 1 && trigger_value == 0) || (datapoint_value == 2 && trigger_value == 1)){
+                        if (m_activeConnection.get() == nullptr) {
+                            Iec104Utility::log_info("%s No active connexion, skip GI request.", beforeLog.c_str()); //LCOV_EXCL_LINE
+                            return false;
+                        }
+                        if(!m_activeConnection->getGiRequested()){
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }
 
 // Each of the following function handle a specific type of ASDU. They cast the
@@ -935,7 +918,7 @@ void IEC104Client::handle_C_SC_NA_1(vector<Datapoint*>& datapoints, string& labe
                              uint64_t ioa,
                              std::shared_ptr<OutstandingCommand> outstandingCommand)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_SC_NA_1 -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_SC_NA_1 -"; //LCOV_EXCL_LINE
     auto io_casted = (SingleCommandWithCP56Time2a)io;
     int64_t state = SingleCommand_getState((SingleCommand)io_casted);
 
@@ -945,15 +928,15 @@ void IEC104Client::handle_C_SC_NA_1(vector<Datapoint*>& datapoints, string& labe
     auto cot = CS101_ASDU_getCOT(asdu);
     if (outstandingCommand) {
         if (cot == CS101_COT_ACTIVATION_CON) {
-            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(),
-                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId,
+            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, //LCOV_EXCL_LINE
                                     CS101_CauseOfTransmission_toString(cot), cot);
             outstandingCommand->actConReceived = true;
             outstandingCommand->timeout = getMonotonicTimeInMs();
         }
         else if (cot == CS101_COT_ACTIVATION_TERMINATION) {
-            Iec104Utility::log_debug("%s Received ACT-TERM for %s (%d) COT: %s (%d)", beforeLog.c_str(),
-                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId,
+            Iec104Utility::log_debug("%s Received ACT-TERM for %s (%d) COT: %s (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, //LCOV_EXCL_LINE
                                     CS101_CauseOfTransmission_toString(cot), cot);
             removeOutstandingCommand(outstandingCommand);
         }
@@ -977,7 +960,7 @@ void IEC104Client::handle_C_DC_NA_1(vector<Datapoint*>& datapoints, string& labe
                              uint64_t ioa,
                              std::shared_ptr<OutstandingCommand> outstandingCommand)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_DC_NA_1 -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_DC_NA_1 -"; //LCOV_EXCL_LINE
     auto io_casted = (DoubleCommandWithCP56Time2a)io;
     int64_t state = DoubleCommand_getState((DoubleCommand)io_casted);
 
@@ -987,15 +970,15 @@ void IEC104Client::handle_C_DC_NA_1(vector<Datapoint*>& datapoints, string& labe
     auto cot = CS101_ASDU_getCOT(asdu);
     if (outstandingCommand) {
         if (cot == CS101_COT_ACTIVATION_CON) {
-            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(),
-                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId,
+            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, //LCOV_EXCL_LINE
                                     CS101_CauseOfTransmission_toString(cot), cot);
             outstandingCommand->actConReceived = true;
             outstandingCommand->timeout = getMonotonicTimeInMs();
         }
         else if (cot == CS101_COT_ACTIVATION_TERMINATION) {
-            Iec104Utility::log_debug("%s Received ACT-TERM for %s (%d) COT: %s (%d)", beforeLog.c_str(),
-                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId,
+            Iec104Utility::log_debug("%s Received ACT-TERM for %s (%d) COT: %s (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, //LCOV_EXCL_LINE
                                     CS101_CauseOfTransmission_toString(cot), cot);
             removeOutstandingCommand(outstandingCommand);
         }
@@ -1017,7 +1000,7 @@ void IEC104Client::handle_C_RC_NA_1(vector<Datapoint*>& datapoints, string& labe
                              uint64_t ioa,
                              std::shared_ptr<OutstandingCommand> outstandingCommand)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_RC_NA_1 -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_RC_NA_1 -"; //LCOV_EXCL_LINE
     auto io_casted = (StepCommandWithCP56Time2a)io;
     int64_t state = StepCommand_getState((StepCommand)io_casted);
 
@@ -1027,15 +1010,15 @@ void IEC104Client::handle_C_RC_NA_1(vector<Datapoint*>& datapoints, string& labe
     auto cot = CS101_ASDU_getCOT(asdu);
     if (outstandingCommand) {
         if (cot == CS101_COT_ACTIVATION_CON) {
-            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(),
-                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId,
+            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, //LCOV_EXCL_LINE
                         CS101_CauseOfTransmission_toString(cot), cot);
             outstandingCommand->actConReceived = true;
             outstandingCommand->timeout = getMonotonicTimeInMs();
         }
         else if (cot == CS101_COT_ACTIVATION_TERMINATION) {
-            Iec104Utility::log_debug("%s Received ACT-TERM for %s (%d) COT: %s (%d)", beforeLog.c_str(),
-                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId,
+            Iec104Utility::log_debug("%s Received ACT-TERM for %s (%d) COT: %s (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                                    IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, //LCOV_EXCL_LINE
                                     CS101_CauseOfTransmission_toString(cot), cot);
             removeOutstandingCommand(outstandingCommand);
         }
@@ -1057,7 +1040,7 @@ void IEC104Client::handle_C_SE_NA_1(vector<Datapoint*>& datapoints, string& labe
                              uint64_t ioa,
                              std::shared_ptr<OutstandingCommand> outstandingCommand)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_SE_NA_1 -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_SE_NA_1 -"; //LCOV_EXCL_LINE
     auto io_casted = (SetpointCommandNormalizedWithCP56Time2a)io;
 
     float value = SetpointCommandNormalized_getValue((SetpointCommandNormalized)io_casted);
@@ -1068,8 +1051,8 @@ void IEC104Client::handle_C_SE_NA_1(vector<Datapoint*>& datapoints, string& labe
     auto cot = CS101_ASDU_getCOT(asdu);
     if (outstandingCommand) {
         if (cot == CS101_COT_ACTIVATION_CON) {
-            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(),
-                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId,
+            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, //LCOV_EXCL_LINE
                         CS101_CauseOfTransmission_toString(cot), cot);
             removeOutstandingCommand(outstandingCommand);
         }
@@ -1091,7 +1074,7 @@ void IEC104Client::handle_C_SE_NB_1(vector<Datapoint*>& datapoints, string& labe
                              uint64_t ioa,
                              std::shared_ptr<OutstandingCommand> outstandingCommand)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_SE_NB_1 -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_SE_NB_1 -"; //LCOV_EXCL_LINE
     auto io_casted = (SetpointCommandScaledWithCP56Time2a)io;
 
     int64_t value = SetpointCommandScaled_getValue((SetpointCommandScaled)io_casted);
@@ -1102,8 +1085,8 @@ void IEC104Client::handle_C_SE_NB_1(vector<Datapoint*>& datapoints, string& labe
     auto cot = CS101_ASDU_getCOT(asdu);
     if (outstandingCommand) {
         if (cot == CS101_COT_ACTIVATION_CON) {
-            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(),
-                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId,
+            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, //LCOV_EXCL_LINE
                         CS101_CauseOfTransmission_toString(cot), cot);
             removeOutstandingCommand(outstandingCommand);
         }
@@ -1125,7 +1108,7 @@ void IEC104Client::handle_C_SE_NC_1(vector<Datapoint*>& datapoints, string& labe
                              uint64_t ioa,
                              std::shared_ptr<OutstandingCommand> outstandingCommand)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_SE_NC_1 -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::handle_C_SE_NC_1 -"; //LCOV_EXCL_LINE
     auto io_casted = (SetpointCommandShortWithCP56Time2a)io;
 
     float value = SetpointCommandShort_getValue((SetpointCommandShort)io_casted);
@@ -1136,8 +1119,8 @@ void IEC104Client::handle_C_SE_NC_1(vector<Datapoint*>& datapoints, string& labe
     auto cot = CS101_ASDU_getCOT(asdu);
     if (outstandingCommand) {
         if (cot == CS101_COT_ACTIVATION_CON) {
-            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(),
-                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId,
+            Iec104Utility::log_debug("%s Received ACT-CON for %s (%d) COT: %s (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
+                        IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, //LCOV_EXCL_LINE
                         CS101_CauseOfTransmission_toString(cot), cot);
             removeOutstandingCommand(outstandingCommand);
         }
@@ -1195,8 +1178,8 @@ IEC104Client::prepareConnections()
 void
 IEC104Client::start()
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::start -";
-    Iec104Utility::log_info("%s IEC104 client starting (started: %s)...", beforeLog.c_str(), m_started?"true":"false");
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::start -"; //LCOV_EXCL_LINE
+    Iec104Utility::log_info("%s IEC104 client starting (started: %s)...", beforeLog.c_str(), m_started?"true":"false"); //LCOV_EXCL_LINE
     if (m_started == false) {
 
         prepareConnections();
@@ -1204,30 +1187,30 @@ IEC104Client::start()
         m_started = true;
         m_monitoringThread = std::make_shared<std::thread>(&IEC104Client::_monitoringThread, this);
     }
-    Iec104Utility::log_info("%s IEC104 client started!", beforeLog.c_str());
+    Iec104Utility::log_info("%s IEC104 client started!", beforeLog.c_str()); //LCOV_EXCL_LINE
 }
 
 void
 IEC104Client::stop()
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::stop -";
-    Iec104Utility::log_info("%s IEC104 client stopping...", beforeLog.c_str());
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::stop -"; //LCOV_EXCL_LINE
+    Iec104Utility::log_info("%s IEC104 client stopping...", beforeLog.c_str()); //LCOV_EXCL_LINE
     if (m_started == true)
     {
         m_started = false;
-        Iec104Utility::log_debug("%s Waiting for monitoring thread to join", beforeLog.c_str());
+        Iec104Utility::log_debug("%s Waiting for monitoring thread to join", beforeLog.c_str()); //LCOV_EXCL_LINE
         if (m_monitoringThread != nullptr) {
             m_monitoringThread->join();
             m_monitoringThread = nullptr;
         }
     }
-    Iec104Utility::log_info("%s IEC104 client stopped!", beforeLog.c_str());
+    Iec104Utility::log_info("%s IEC104 client stopped!", beforeLog.c_str()); //LCOV_EXCL_LINE
 }
 
 void
 IEC104Client::_monitoringThread()
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::_monitoringThread -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::_monitoringThread -"; //LCOV_EXCL_LINE
     uint64_t qualityUpdateTimeout = 500; /* 500 ms */
     uint64_t qualityUpdateTimer = 0;
     bool qualityUpdated = false;
@@ -1235,7 +1218,7 @@ IEC104Client::_monitoringThread()
 
     if (m_started)
     {
-        Iec104Utility::log_info("%s Starting all client connections", beforeLog.c_str());
+        Iec104Utility::log_info("%s Starting all client connections", beforeLog.c_str()); //LCOV_EXCL_LINE
         for (auto clientConnection : m_connections)
         {
             clientConnection->Start();
@@ -1251,7 +1234,7 @@ IEC104Client::_monitoringThread()
     while (m_started)
     {
         {
-            std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+            std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
 
             if (m_activeConnection == nullptr)
             {
@@ -1272,8 +1255,8 @@ IEC104Client::_monitoringThread()
 
                         updateConnectionStatus(ConnectionStatus::STARTED);
 
-                        Iec104Utility::log_info("%s Activated connection", beforeLog.c_str());
-                        break;
+                        Iec104Utility::log_info("%s Activated connection", beforeLog.c_str()); //LCOV_EXCL_LINE
+                        break; //LCOV_EXCL_LINE
                     }
                 }
 
@@ -1289,8 +1272,8 @@ IEC104Client::_monitoringThread()
                         if (qualityUpdated == false) {
                             if (qualityUpdateTimer != 0) {
                                 if (getMonotonicTimeInMs() > qualityUpdateTimer) {
-                                    Iec104Utility::log_info("%s Sending all data objects with non topical quality after connection lost for %dms",
-                                                            beforeLog.c_str(), qualityUpdateTimer);
+                                    Iec104Utility::log_info("%s Sending all data objects with non topical quality after connection lost for %dms", //LCOV_EXCL_LINE
+                                                            beforeLog.c_str(), qualityUpdateTimer); //LCOV_EXCL_LINE
                                     updateQualityForAllDataObjects(IEC60870_QUALITY_NON_TOPICAL);
                                     qualityUpdated = true;
                                 }
@@ -1306,7 +1289,7 @@ IEC104Client::_monitoringThread()
 
                     if (Hal_getTimeInMs() > backupConnectionStartTime)
                     {
-                        Iec104Utility::log_info("%s Activating backup connections", beforeLog.c_str());
+                        Iec104Utility::log_info("%s Activating backup connections", beforeLog.c_str()); //LCOV_EXCL_LINE
                         /* Connect all disconnected connections */
                         for (auto clientConnection : m_connections)
                         {
@@ -1324,7 +1307,7 @@ IEC104Client::_monitoringThread()
 
                 if (m_activeConnection->Connected() == false)
                 {
-                    Iec104Utility::log_info("%s Active connection lost", beforeLog.c_str());
+                    Iec104Utility::log_info("%s Active connection lost", beforeLog.c_str()); //LCOV_EXCL_LINE
                     m_activeConnection = nullptr;
                 }
                 else {
@@ -1334,7 +1317,7 @@ IEC104Client::_monitoringThread()
                     {
                         if (clientConnection != m_activeConnection) {
                             if (clientConnection->Connected() && !clientConnection->Autostart()) {
-                                Iec104Utility::log_info("%s Disconnecting unnecessary connection", beforeLog.c_str());
+                                Iec104Utility::log_info("%s Disconnecting unnecessary connection", beforeLog.c_str()); //LCOV_EXCL_LINE
                                 clientConnection->Disonnect();
                             }
                         }
@@ -1348,15 +1331,15 @@ IEC104Client::_monitoringThread()
         Thread_sleep(100);
     }
 
-    Iec104Utility::log_info("%s Terminating all client connections", beforeLog.c_str());
+    Iec104Utility::log_info("%s Terminating all client connections", beforeLog.c_str()); //LCOV_EXCL_LINE
 
-    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
     m_activeConnection = nullptr;
     // This ensures that all shared_ptr to IEC104ClientConnection present in outstanding commands are cleared
     // before we exit the monitoring thread which prevents crashes in some unit tests where connection object
     // would be destroyed after the IEC104Client object was destroyed.
     if(!m_outstandingCommands.empty()) {
-        std::lock_guard<std::mutex> lock2(m_outstandingCommandsMtx);
+        std::lock_guard<std::mutex> lock2(m_outstandingCommandsMtx); //LCOV_EXCL_LINE
         m_outstandingCommands.clear();
     }
     m_connections.clear();
@@ -1369,7 +1352,7 @@ IEC104Client::sendInterrogationCommand(int ca)
     // send interrogation request over active connection
     bool success = false;
 
-    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
 
     if (m_activeConnection != nullptr)
     {
@@ -1381,12 +1364,12 @@ IEC104Client::sendInterrogationCommand(int ca)
 
 std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::addOutstandingCommandAndCheckLimit(int ca, int ioa, bool withTime, int typeIdWithTimestamp, int typeIdNoTimestamp)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::addOutstandingCommandAndCheckLimit -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::addOutstandingCommandAndCheckLimit -"; //LCOV_EXCL_LINE
     std::shared_ptr<OutstandingCommand> command;
 
     // check if number of allowed parallel commands is not exceeded.
 
-    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
 
     int cmdParrallel = m_config->CmdParallel();
     int typeId = withTime ? typeIdWithTimestamp : typeIdNoTimestamp;
@@ -1396,8 +1379,8 @@ std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::addOutstandingCo
             command = std::make_shared<OutstandingCommand>(typeId, ca, ioa, m_activeConnection);
         }
         else {
-            Iec104Utility::log_warn("%s Maximum number of parallel command exceeded (%d) -> ignore command with typeId=%s, CA=%d, IOA=%d",
-                                    beforeLog.c_str(), cmdParrallel, IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), ca, ioa);
+            Iec104Utility::log_warn("%s Maximum number of parallel command exceeded (%d) -> ignore command with typeId=%s, CA=%d, IOA=%d", //LCOV_EXCL_LINE
+                                    beforeLog.c_str(), cmdParrallel, IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), ca, ioa); //LCOV_EXCL_LINE
             return nullptr;
         }
     }
@@ -1415,15 +1398,15 @@ std::shared_ptr<IEC104Client::OutstandingCommand> IEC104Client::addOutstandingCo
 bool
 IEC104Client::sendSingleCommand(int ca, int ioa, bool value, bool withTime, bool select, long time)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSingleCommand -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSingleCommand -"; //LCOV_EXCL_LINE
     // send single command over active connection
     bool success = false;
 
     // check if the data point is in the exchange configuration
     std::string cmdName = withTime?"C_SC_TA_1":"C_SC_NA_1";
     if (m_config->checkExchangeDataLayer(C_SC_NA_1, ca, ioa) == nullptr) {
-        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
         return false;
     }
 
@@ -1432,15 +1415,15 @@ IEC104Client::sendSingleCommand(int ca, int ioa, bool value, bool withTime, bool
     if (command == nullptr)
         return false; //LCOV_EXCL_LINE
 
-    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
 
     if (m_activeConnection != nullptr)
     {
         success = m_activeConnection->sendSingleCommand(ca, ioa, value, withTime, select, time);
     }
     else {
-        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
     }
 
     if (!success) removeOutstandingCommand(command);
@@ -1451,15 +1434,15 @@ IEC104Client::sendSingleCommand(int ca, int ioa, bool value, bool withTime, bool
 bool
 IEC104Client::sendDoubleCommand(int ca, int ioa, int value, bool withTime, bool select, long time)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendDoubleCommand -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendDoubleCommand -"; //LCOV_EXCL_LINE
     // send double command over active connection
     bool success = false;
 
     // check if the data point is in the exchange configuration
     std::string cmdName = withTime?"C_DC_TA_1":"C_DC_NA_1";
     if (m_config->checkExchangeDataLayer(C_DC_NA_1, ca, ioa) == nullptr) {
-        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
         return false;
     }
 
@@ -1468,15 +1451,15 @@ IEC104Client::sendDoubleCommand(int ca, int ioa, int value, bool withTime, bool 
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
 
     if (m_activeConnection != nullptr)
     {
         success = m_activeConnection->sendDoubleCommand(ca, ioa, value, withTime, select, time);
     }
     else {
-        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
     }
 
     if (!success) removeOutstandingCommand(command);
@@ -1487,15 +1470,15 @@ IEC104Client::sendDoubleCommand(int ca, int ioa, int value, bool withTime, bool 
 bool
 IEC104Client::sendStepCommand(int ca, int ioa, int value, bool withTime, bool select, long time)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendStepCommand -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendStepCommand -"; //LCOV_EXCL_LINE
     // send step command over active connection
     bool success = false;
 
     // check if the data point is in the exchange configuration
     std::string cmdName = withTime?"C_RC_TA_1":"C_RC_NA_1";
     if (m_config->checkExchangeDataLayer(C_RC_NA_1, ca, ioa) == nullptr) {
-        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
         return false;
     }
 
@@ -1504,15 +1487,15 @@ IEC104Client::sendStepCommand(int ca, int ioa, int value, bool withTime, bool se
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
 
     if (m_activeConnection != nullptr)
     {
         success = m_activeConnection->sendStepCommand(ca, ioa, value, withTime, select, time);
     }
     else {
-        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
     }
 
     if (!success) removeOutstandingCommand(command);
@@ -1523,15 +1506,15 @@ IEC104Client::sendStepCommand(int ca, int ioa, int value, bool withTime, bool se
 bool
 IEC104Client::sendSetpointNormalized(int ca, int ioa, float value, bool withTime, long time)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSetpointNormalized -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSetpointNormalized -"; //LCOV_EXCL_LINE
     // send setpoint command normalized over active connection
     bool success = false;
 
     // check if the data point is in the exchange configuration
     std::string cmdName = withTime?"C_SE_TA_1":"C_SE_NA_1";
     if (m_config->checkExchangeDataLayer(C_SE_NA_1, ca, ioa) == nullptr) {
-        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
         return false;
     }
 
@@ -1540,15 +1523,15 @@ IEC104Client::sendSetpointNormalized(int ca, int ioa, float value, bool withTime
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
 
     if (m_activeConnection != nullptr)
     {
         success = m_activeConnection->sendSetpointNormalized(ca, ioa, value, withTime, time);
     }
     else {
-        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
     }
 
     if (!success) removeOutstandingCommand(command);
@@ -1559,15 +1542,15 @@ IEC104Client::sendSetpointNormalized(int ca, int ioa, float value, bool withTime
 bool
 IEC104Client::sendSetpointScaled(int ca, int ioa, int value, bool withTime, long time)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSetpointScaled -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSetpointScaled -"; //LCOV_EXCL_LINE
     // send setpoint command scaled over active connection
     bool success = false;
 
     // check if the data point is in the exchange configuration
     std::string cmdName = withTime?"C_SE_TB_1":"C_SE_NB_1";
     if (m_config->checkExchangeDataLayer(C_SE_NB_1, ca, ioa) == nullptr) {
-        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
         return false;
     }
 
@@ -1576,15 +1559,15 @@ IEC104Client::sendSetpointScaled(int ca, int ioa, int value, bool withTime, long
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
 
     if (m_activeConnection != nullptr)
     {
         success = m_activeConnection->sendSetpointScaled(ca, ioa, value, withTime, time);
     }
     else {
-        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
     }
 
     if (!success) removeOutstandingCommand(command);
@@ -1595,15 +1578,15 @@ IEC104Client::sendSetpointScaled(int ca, int ioa, int value, bool withTime, long
 bool
 IEC104Client::sendSetpointShort(int ca, int ioa, float value, bool withTime, long time)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSetpointShort -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendSetpointShort -"; //LCOV_EXCL_LINE
     // send setpoint command short over active connection
     bool success = false;
 
     // check if the data point is in the exchange configuration
     std::string cmdName = withTime?"C_SE_TC_1":"C_SE_NC_1";
     if (m_config->checkExchangeDataLayer(C_SE_NC_1, ca, ioa) == nullptr) {
-        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_error("%s Command %s (CA: %d, IOA: %d) not found in exchange configuration", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
         return false;
     }
 
@@ -1612,15 +1595,15 @@ IEC104Client::sendSetpointShort(int ca, int ioa, float value, bool withTime, lon
     if (command == nullptr)
         return false;//LCOV_EXCL_LINE
 
-    std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
+    std::lock_guard<std::mutex> lock(m_activeConnectionMtx); //LCOV_EXCL_LINE
 
     if (m_activeConnection != nullptr)
     {
         success = m_activeConnection->sendSetpointShort(ca, ioa, value, withTime, time);
     }
     else {
-        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)",
-                                beforeLog.c_str(), cmdName.c_str(), ca, ioa);
+        Iec104Utility::log_warn("%s No active connection, cannot send command %s (CA: %d, IOA: %d)", //LCOV_EXCL_LINE
+                                beforeLog.c_str(), cmdName.c_str(), ca, ioa); //LCOV_EXCL_LINE
     }
 
     if (!success) removeOutstandingCommand(command);
@@ -1640,4 +1623,14 @@ const std::string&
 IEC104Client::getServiceName() const
 {
     return m_iec104->getServiceName();
+}
+
+bool IEC104Client::scheduleGI()
+{
+    if (m_activeConnection != nullptr)
+    {
+        m_activeConnection->setGiRequested(true);
+        return true;
+    }
+    return false;
 }
