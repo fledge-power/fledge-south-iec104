@@ -40,28 +40,16 @@ getMonotonicTimeInMs()
     return timeVal;
 }
 
-static bool isTypeIdSTS(IEC60870_5_TypeID typeId) {
-    if (typeId == M_SP_NA_1 || typeId == M_SP_TA_1 || typeId == M_SP_TB_1 || typeId == M_PS_NA_1) {
-        return true;
-    } else {
-        return false;
-    }
+static bool isTypeIdSingleSP(IEC60870_5_TypeID typeId) {
+    return typeId == M_SP_NA_1 || typeId == M_SP_TA_1 || typeId == M_SP_TB_1;
 }
 
-static bool isTypeIdDTS(IEC60870_5_TypeID typeId) {
-    if (typeId == M_DP_NA_1 || typeId == M_DP_TA_1 || typeId == M_DP_TB_1 || typeId == M_EP_TA_1 || typeId == M_EP_TD_1) {
-        return true;
-    } else {
-        return false;
-    }
+static bool isTypeIdDoubleSP(IEC60870_5_TypeID typeId) {
+    return typeId == M_DP_NA_1 || typeId == M_DP_TA_1 || typeId == M_DP_TB_1;
 }
 
-static bool isTypeIdTS(IEC60870_5_TypeID typeId) {
-    if (isTypeIdSTS(typeId) || isTypeIdDTS(typeId)) {
-        return true;
-    } else {
-        return false;
-    }
+static bool isTypeIdSP(IEC60870_5_TypeID typeId) {
+     return isTypeIdSingleSP(typeId) || isTypeIdDoubleSP(typeId);
 }
 
 template <class T>
@@ -801,8 +789,8 @@ bool IEC104Client::isAsduTriggerGi(vector<Datapoint*>& datapoints,
                             uint64_t ioa,
                             IEC60870_5_TypeID typeId) {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::isAsduTriggerGi -";
-    if (m_config->isTsAddressCgTriggering(ca, ioa) && isTypeIdTS(typeId) && (CS101_ASDU_getCOT(asdu) != CS101_CauseOfTransmission::CS101_COT_INTERROGATED_BY_STATION)) {
-        int valueTriggering = isTypeIdSTS(typeId) ? 0 : 1; // if it is a simple TS 0 is 0 if it is a double 0 is 1 because 01 is 0, 10 is 1, 11 is transient
+    if (m_config->isTsAddressCgTriggering(ca, ioa) && isTypeIdSP(typeId) && (CS101_ASDU_getCOT(asdu) != CS101_CauseOfTransmission::CS101_COT_INTERROGATED_BY_STATION)) {
+        int valueTriggering = isTypeIdSingleSP(typeId) ? 0 : 1; // if it is a simple TS 0 is 0 if it is a double 0 is 1 because 01 is 0, 10 is 1, 11 is transient
         for (auto datapoint : *(datapoints.back()->getData().getDpVec())) {
             if (datapoint->getName() == "do_value" && datapoint->getData().toInt() == valueTriggering) {
                 if (m_activeConnection.get() == nullptr) {
