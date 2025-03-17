@@ -416,6 +416,7 @@ TEST_F(IEC104Test, IEC104_receiveMonitoringAsdus)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(15, 15);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setInterrogationHandler(slave, interrogationHandler, NULL);
 
@@ -543,6 +544,7 @@ TEST_F(IEC104Test, IEC104_reconnectAfterConnectionLoss)
 
     /* start the slave */
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setConnectionEventHandler(slave, test_ConnectionEventHandler, &connectionEventCounter);
 
@@ -590,6 +592,7 @@ TEST_F(IEC104Test, IEC104_connectionFails)
     int connectionEventCounter = 0;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setConnectionEventHandler(slave, test_ConnectionEventHandler, &connectionEventCounter);
 
@@ -624,6 +627,7 @@ TEST_F(IEC104Test, IEC104_receiveMonitoringAsdusWithCOT_11)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -693,6 +697,7 @@ TEST_F(IEC104Test, IEC104_receiveSpont_M_ST_TB_1)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -762,6 +767,7 @@ TEST_F(IEC104Test, IEC104_receiveSpont_M_ME_TD_1)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -831,6 +837,7 @@ TEST_F(IEC104Test, IEC104_receiveSpont_M_ME_NB_1)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -895,6 +902,7 @@ TEST_F(IEC104Test, IEC104_receiveSpont_M_DP_NA_1)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -960,6 +968,7 @@ TEST_F(IEC104Test, IEC104_receiveSpont_M_DP_TB_1)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1029,6 +1038,7 @@ TEST_F(IEC104Test, IEC104_receiveSpont_M_ME_NC_1)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1093,6 +1103,7 @@ TEST_F(IEC104Test, IEC104_receiveSpont_M_ME_TE_1)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1162,6 +1173,7 @@ TEST_F(IEC104Test, IEC104_receiveSpont_M_ME_TF_1)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 
@@ -1231,6 +1243,7 @@ TEST_F(IEC104Test, IEC104_receiveGI_M_ST_NA_1)
     storedReading = nullptr;
 
     CS104_Slave slave = CS104_Slave_create(10, 10);
+    ASSERT_NE(slave, nullptr);
 
     CS104_Slave_setLocalPort(slave, TEST_PORT);
 

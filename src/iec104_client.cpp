@@ -40,6 +40,18 @@ getMonotonicTimeInMs()
     return timeVal;
 }
 
+static bool isTypeIdSingleSP(IEC60870_5_TypeID typeId) {
+    return typeId == M_SP_NA_1 || typeId == M_SP_TA_1 || typeId == M_SP_TB_1;
+}
+
+static bool isTypeIdDoubleSP(IEC60870_5_TypeID typeId) {
+    return typeId == M_DP_NA_1 || typeId == M_DP_TA_1 || typeId == M_DP_TB_1;
+}
+
+static bool isTypeIdSP(IEC60870_5_TypeID typeId) {
+     return isTypeIdSingleSP(typeId) || isTypeIdDoubleSP(typeId);
+}
+
 template <class T>
 Datapoint* IEC104Client::m_createDatapoint(const std::string& dataname, const T value)
 {
@@ -181,25 +193,14 @@ void IEC104Client::updateQualityForAllDataObjects(QualityDescriptor qd)
             if (dp) {
                 if (isDataPointInMonitoringDirection(dp))
                 {
-                    bool skipDatapoint = false;
+                    //TODO also add timestamp?
 
-                    if (m_config->GetCnxLossStatusId().empty() == false) {
-                        if (dp->label == m_config->GetCnxLossStatusId()) {
-                            skipDatapoint = true;
-                        }
+                    Datapoint* qualityUpdateDp = m_createQualityUpdateForDataObject(dp, &qd, nullptr);
+
+                    if (qualityUpdateDp) {
+                        datapoints.push_back(qualityUpdateDp);
+                        labels.push_back(dp->label);
                     }
-
-                    if (skipDatapoint == false) {
-                        //TODO also add timestamp?
-
-                        Datapoint* qualityUpdateDp = m_createQualityUpdateForDataObject(dp, &qd, nullptr);
-
-                        if (qualityUpdateDp) {
-                            datapoints.push_back(qualityUpdateDp);
-                            labels.push_back(dp->label);
-                        }
-                    }
-
                 }
             }
         }
@@ -334,52 +335,6 @@ Datapoint* IEC104Client::m_createDataObject(CS101_ASDU asdu, int64_t ioa, const 
 
          attributes->push_back(m_createDatapoint("do_ts_sub", (CP56Time2a_isSubstituted(ts)) ? 1L : 0L));
     }
-
-    DatapointValue dpv(attributes, true);
-
-    return new Datapoint("data_object", dpv);
-}
-
-Datapoint* IEC104Client::m_createCnxLossStatus(std::shared_ptr<DataExchangeDefinition> dp, bool value, uint64_t timestamp)
-{
-    auto* attributes = new vector<Datapoint*>;
-
-    attributes->push_back(m_createDatapoint("do_type", IEC104ClientConfig::getStringFromTypeID(dp->typeId)));
-
-    attributes->push_back(m_createDatapoint("do_ca", (long)dp->ca));
-
-    attributes->push_back(m_createDatapoint("do_oa", (long)0));
-
-    attributes->push_back(m_createDatapoint("do_cot", (long)3));
-
-    attributes->push_back(m_createDatapoint("do_test", (long)0));
-
-    attributes->push_back(m_createDatapoint("do_negative", (long)0));
-
-    attributes->push_back(m_createDatapoint("do_ioa", (long)dp->ioa));
-
-    if (value)
-        attributes->push_back(m_createDatapoint("do_value", 1L));
-    else
-        attributes->push_back(m_createDatapoint("do_value", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_iv", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_bl", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_ov", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_sb", 0L));
-
-    attributes->push_back(m_createDatapoint("do_quality_nt", 0L));
-
-    attributes->push_back(m_createDatapoint("do_ts", (long)timestamp));
-
-    attributes->push_back(m_createDatapoint("do_ts_iv", 0L));
-
-    attributes->push_back(m_createDatapoint("do_ts_su", 0L));
-
-    attributes->push_back(m_createDatapoint("do_ts_sub", 0L));
 
     DatapointValue dpv(attributes, true);
 
@@ -524,28 +479,13 @@ IEC104Client::updateGiStatus(GiStatus newState)
     m_giStatus = newState;
 
     sendSouthMonitoringEvent(false, true);
-}
 
-bool
-IEC104Client::sendCnxLossStatus(bool value)
-{
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::sendCnxLossStatus -";
-    std::shared_ptr<DataExchangeDefinition> dp = m_config->getCnxLossStatusDatapoint();
-
-    if (dp) {
-        Iec104Utility::log_info("%s send cnx_loss_status (data point: %s)", beforeLog.c_str(), dp->label.c_str());
-
-        Datapoint* cnxLossStatusDp = m_createCnxLossStatus(dp, value, Hal_getTimeInMs());
-
-        std::vector<Datapoint*> points;
-        points.push_back(cnxLossStatusDp);
-
-        m_iec104->ingest(dp->label, points);
-
-        return true;
-    }
-
-    return false;
+    #ifdef UNIT_TEST
+        // Simulated longer GI
+        if(newState == GiStatus::STARTED) {
+            Thread_sleep(200);
+        }
+    #endif
 }
 
 IEC104Client::GiStatus
@@ -732,6 +672,9 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
                     labels.push_back(*label);
                     Iec104Utility::log_info("%s Created data object for ASDU of type %s (%d) with CA: %i IOA: %i", beforeLog.c_str(),
                                             IEC104ClientConfig::getStringFromTypeID(typeId).c_str(), typeId, ca, ioa);
+                    if(isAsduTriggerGi(datapoints, ca, asdu, ioa, typeId)){
+                        m_activeConnection->setGiRequested(true);
+                    }
                 }
                 else {
                     Iec104Utility::log_warn("%s ASDU type %s (%d) not supported for %s (CA: %i IOA: %i)", beforeLog.c_str(),
@@ -759,6 +702,29 @@ IEC104Client::handleASDU(const IEC104ClientConnection* connection, CS101_ASDU as
     }
 
     return handledAsdu;
+}
+
+bool IEC104Client::isAsduTriggerGi(vector<Datapoint*>& datapoints,
+                            unsigned int ca,
+                            CS101_ASDU asdu,
+                            uint64_t ioa,
+                            IEC60870_5_TypeID typeId) {
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104Client::isAsduTriggerGi -";
+    if (m_config->isTsAddressCgTriggering(ca, ioa) && isTypeIdSP(typeId) && (CS101_ASDU_getCOT(asdu) != CS101_CauseOfTransmission::CS101_COT_INTERROGATED_BY_STATION)) {
+        int valueTriggering = isTypeIdSingleSP(typeId) ? 0 : 1; // if it is a simple TS 0 is 0 if it is a double 0 is 1 because 01 is 0, 10 is 1, 11 is transient
+        for (auto datapoint : *(datapoints.back()->getData().getDpVec())) {
+            if (datapoint->getName() == "do_value" && datapoint->getData().toInt() == valueTriggering) {
+                if (m_activeConnection.get() == nullptr) {
+                    Iec104Utility::log_info("%s No active connexion, skip GI request.", beforeLog.c_str());
+                    return false;
+                }
+                if(!m_activeConnection->getGiRequested()){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 // Each of the following function handle a specific type of ASDU. They cast the
@@ -1349,9 +1315,17 @@ IEC104Client::_monitoringThread()
     }
 
     Iec104Utility::log_info("%s Terminating all client connections", beforeLog.c_str());
-    m_connections.clear();
+
     std::lock_guard<std::mutex> lock(m_activeConnectionMtx);
     m_activeConnection = nullptr;
+    // This ensures that all shared_ptr to IEC104ClientConnection present in outstanding commands are cleared
+    // before we exit the monitoring thread which prevents crashes in some unit tests where connection object
+    // would be destroyed after the IEC104Client object was destroyed.
+    if(!m_outstandingCommands.empty()) {
+        std::lock_guard<std::mutex> lock2(m_outstandingCommandsMtx);
+        m_outstandingCommands.clear();
+    }
+    m_connections.clear();
     updateConnectionStatus(ConnectionStatus::NOT_CONNECTED);
 }
 

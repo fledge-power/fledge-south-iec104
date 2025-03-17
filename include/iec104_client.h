@@ -75,8 +75,6 @@ public:
 
     void updateGiStatus(GiStatus newState);
 
-    bool sendCnxLossStatus(bool value);
-
     GiStatus getGiStatus();
 
     static bool isMessageTypeMatching(int expectedType, int rcvdType);
@@ -94,8 +92,6 @@ private:
     std::vector<std::shared_ptr<DataExchangeDefinition>> m_listOfStationGroupDatapoints;
 
     std::shared_ptr<IEC104ClientConfig> m_config;
-
-    Datapoint* m_createCnxLossStatus(std::shared_ptr<DataExchangeDefinition> dp, bool value, uint64_t timestamp);
 
     class OutstandingCommand {
     public:
@@ -264,6 +260,12 @@ private:
                                 unsigned int ca, CS101_ASDU asdu,
                                 InformationObject io, uint64_t ioa,
                                 std::shared_ptr<OutstandingCommand> outstandingCommand);
+
+    bool isAsduTriggerGi(std::vector<Datapoint*>& datapoints,
+                            unsigned int ca,
+                            CS101_ASDU asdu,
+                            uint64_t ioa,
+                            IEC60870_5_TypeID typeId);
 
     // Format 2019-01-01 10:00:00.123456+08:00
     static std::string CP56Time2aToString(const CP56Time2a ts)

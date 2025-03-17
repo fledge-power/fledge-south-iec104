@@ -15,12 +15,14 @@
 #define JSON_DATAPOINTS "datapoints"
 #define JSON_PROTOCOLS "protocols"
 #define JSON_LABEL "label"
+#define JSON_PIVOT_SUBTYPES "pivot_subtypes"
 
 #define PROTOCOL_IEC104 "iec104"
 #define JSON_PROT_NAME "name"
 #define JSON_PROT_ADDR "address"
 #define JSON_PROT_TYPEID "typeid"
 #define JSON_PROT_GI_GROUPS "gi_groups"
+#define JSON_TRIGGER_SOUTH_GI_PIVOT_SUBTYPE "trigger_south_gi"
 
 using namespace rapidjson;
 using namespace std;
@@ -448,23 +450,6 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_error("%s south_monitoring is missing \"asset\" element", beforeLog.c_str());
-            }
-
-            if (southMonitoring.HasMember("cnx_loss_status_id")) {
-                if (southMonitoring["cnx_loss_status_id"].IsString()) {
-
-                    m_cnxLossStatusId = southMonitoring["cnx_loss_status_id"].GetString();
-
-                    if (m_cnxLossStatusId.empty()) {
-                        m_sendCnxLossStatus = false;
-                    }
-                    else {
-                        m_sendCnxLossStatus = true;
-                    }
-                }
-                else {
-                    Iec104Utility::log_error("%s south_monitoring \"cnx_loss_status_id\" element is not a string", beforeLog.c_str());
-                }
             }
         }
         else {
@@ -921,7 +906,7 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
             conn = con["conn"].GetBool();
         }
         else {
-            Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%d)",
+            Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%s)",
                                     beforeLog.c_str(), conn?"true":"false");
         }
     }
@@ -931,7 +916,7 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
             start = con["start"].GetBool();
         }
         else {
-            Iec104Utility::log_warn("%s  start is not a bool -> using default start (%d)",
+            Iec104Utility::log_warn("%s  start is not a bool -> using default start (%s)",
                                     beforeLog.c_str(), start?"true":"false");
         }
     }
@@ -1072,35 +1057,6 @@ IEC104ClientConfig::getExchangeDefinitionByLabel(std::string& label)
     return nullptr;
 }
 
-std::shared_ptr<DataExchangeDefinition>
-IEC104ClientConfig::getCnxLossStatusDatapoint()
-{
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::getCnxLossStatusDatapoint -";
-    if (m_sendCnxLossStatus) {
-        auto cnxLossStatusDp = getExchangeDefinitionByLabel(m_cnxLossStatusId);
-
-        if (cnxLossStatusDp != nullptr) {
-            if ((cnxLossStatusDp->typeId == M_SP_NA_1) || (cnxLossStatusDp->typeId == M_SP_TB_1)) {
-                return cnxLossStatusDp;
-            }
-
-            Iec104Utility::log_warn("%s Data point for cnx_loss_status_id is not a single point status: %s (%d)", beforeLog.c_str(),
-                                    IEC104ClientConfig::getStringFromTypeID(cnxLossStatusDp->typeId).c_str(), cnxLossStatusDp->typeId);
-        }
-        else {
-            Iec104Utility::log_warn("%s Data point for cnx_loss_status_id '%s' not found in exchange data", beforeLog.c_str(),
-                                    m_cnxLossStatusId.c_str());
-        }
-
-        m_sendCnxLossStatus = false;
-    }
-    else {
-        Iec104Utility::log_debug("%s Connection loss status message disabled", beforeLog.c_str());
-    }
-
-    return nullptr;
-}
-
 void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
 {
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importExchangeConfig -";
@@ -1149,6 +1105,17 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
 
         string label = datapoint[JSON_LABEL].GetString();
 
+
+        bool isGiTriggeringTs = false;
+        if (datapoint.HasMember(JSON_PIVOT_SUBTYPES) && datapoint[JSON_PIVOT_SUBTYPES].IsArray()) {
+            for (const Value &subtype : datapoint[JSON_PIVOT_SUBTYPES].GetArray()) {
+                if (subtype.IsString() && subtype.GetString() == string(JSON_TRIGGER_SOUTH_GI_PIVOT_SUBTYPE)) {
+                    isGiTriggeringTs = true;
+                    break;
+                }
+            }
+        }
+
         if (!datapoint.HasMember(JSON_PROTOCOLS) || !datapoint[JSON_PROTOCOLS].IsArray()) {
             Iec104Utility::log_error("%s %s does not exist or is not an array", beforeLog.c_str(), JSON_PROTOCOLS);
             return;
@@ -1168,8 +1135,7 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
             
             string protocolName = protocol[JSON_PROT_NAME].GetString();
 
-            if (protocolName == PROTOCOL_IEC104)
-            {
+            if (protocolName == PROTOCOL_IEC104) {
                 int giGroups = 0;
 
                 if (!protocol.HasMember(JSON_PROT_ADDR) || !protocol[JSON_PROT_ADDR].IsString()) {
@@ -1185,7 +1151,6 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                 string typeIdStr = protocol[JSON_PROT_TYPEID].GetString();
 
                 if (protocol.HasMember(JSON_PROT_GI_GROUPS)) {
-
                     if(protocol[JSON_PROT_GI_GROUPS].IsString()) {
                         string giGroupsStr = protocol["gi_groups"].GetString();
 
@@ -1196,11 +1161,10 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                                 giGroups = 1;
                             }
                         }
-                    }
-                    else {
+                    } else {
                         Iec104Utility::log_warn("%s %s value is not a string", beforeLog.c_str(),
                                                 JSON_PROT_GI_GROUPS);
-                    } 
+                    }
                 }
 
                 Iec104Utility::log_debug("%s GI GROUPS = %i", beforeLog.c_str(), giGroups);
@@ -1238,9 +1202,13 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                         Iec104Utility::log_debug("%s  Added exchange data %i:%i type: %i (%s)", beforeLog.c_str(), ca, ioa, def->typeId,
                                                 typeIdStr.c_str());
                         ExchangeDefinition()[ca][ioa] = def;
+
+                        if (isGiTriggeringTs) {
+                            Iec104Utility::log_debug("Adding TS %s with ca %d ioa %d to GI triggering one", def->label, def->ca, def->ioa);
+                            m_cgTriggeringTsAdresses.insert(make_pair(ca, ioa));
+                        }
                     }
-                }
-                else {
+                } else {
                     Iec104Utility::log_error("%s  %s value does not follow format 'XXX-YYY': %s", beforeLog.c_str(), JSON_PROT_ADDR,
                                             address.c_str());
                     return;

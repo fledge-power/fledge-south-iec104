@@ -244,8 +244,7 @@ static string protocol_config_broken4 = QUOTE({
                 "time_sync" : 1
             },
             "south_monitoring" : {
-                "asset": "CONSTAT-1",
-                "cnx_loss_status_id" : ""
+                "asset": "CONSTAT-1"
             }
         }
     });
@@ -1440,6 +1439,140 @@ static string exchanged_data_broken1 = QUOTE({
             ]
     });
 
+static string gi_triggering_ts_exchange_data = QUOTE({
+    "exchanged_data": {
+        "datapoints": [
+            {
+                "label": "MAROL_0_S.AUX_DF.TRAN_TS",
+                "pivot_id": "S_2367_0_2_31",
+                "pivot_type": "SpsTyp",
+                "protocols": [
+                {
+                    "address": "37873-20706",
+                    "name": "iec104",
+                    "typeid": "M_SP_NA_1"
+                }
+                ]
+            },
+            {
+                "label": "MAROL_0_S.AUX_EXP.PART_TS",
+                "pivot_id": "S_2367_0_2_27",
+                "pivot_type": "DpsTyp",
+                "pivot_subtypes": [
+                "transient",
+                "trigger_south_gi"
+                ],
+                "protocols": [
+                {
+                    "address": "37873-21096",
+                    "name": "iec104",
+                    "typeid": "M_DP_NA_1"
+                }
+                ]
+            },
+            {
+                "label": "MAROL_3_3CBO_EXP.PART_TS",
+                "pivot_id": "S_2367_3_45_27",
+                "pivot_type": "SpsTyp",
+                "pivot_subtypes": [
+                "trigger_south_gi"
+                ],
+                "protocols": [
+                {
+                    "address": "37873-3519059",
+                    "name": "iec104",
+                    "typeid": "M_SP_TB_1"
+                }
+                ]
+            }
+        ]
+    }
+});
+
+static string gi_triggering_ts_exchange_data_pivot_subtype_type_error = QUOTE({
+    "exchanged_data": {
+        "datapoints": [
+            {
+                "label": "MAROL_0_S.AUX_EXP.PART_TS",
+                "pivot_id": "S_2367_0_2_27",
+                "pivot_type": "DpsTyp",
+                "pivot_subtypes": 42,
+                "protocols": [
+                    {
+                        "address": "37873-21096",
+                        "name": "iec104",
+                        "typeid": "M_DP_NA_1"
+                    }
+                ]
+            }
+        ]
+    }
+});
+
+static string gi_triggering_ts_exchange_data_pivot_subtype_empty_array_error = QUOTE({
+    "exchanged_data": {
+        "datapoints": [
+            {
+                "label": "MAROL_0_S.AUX_EXP.PART_TS",
+                "pivot_id": "S_2367_0_2_27",
+                "pivot_type": "DpsTyp",
+                "pivot_subtypes": [],
+                "protocols": [
+                    {
+                        "address": "37873-21096",
+                        "name": "iec104",
+                        "typeid": "M_DP_NA_1"
+                    }
+                ]
+            }
+        ]
+    }
+});
+
+static string gi_triggering_ts_exchange_data_pivot_subtype_array_type_error = QUOTE({
+    "exchanged_data": {
+        "datapoints": [
+            {
+                "label": "MAROL_0_S.AUX_EXP.PART_TS",
+                "pivot_id": "S_2367_0_2_27",
+                "pivot_type": "DpsTyp",
+                "pivot_subtypes": [
+                    42
+                ],
+                "protocols": [
+                    {
+                        "address": "37873-21096",
+                        "name": "iec104",
+                        "typeid": "M_DP_NA_1"
+                    }
+                ]
+            }
+        ]
+    }
+});
+
+static string gi_triggering_ts_exchange_data_pivot_subtype_array_content_error = QUOTE({
+    "exchanged_data": {
+        "datapoints": [
+            {
+                "label": "MAROL_0_S.AUX_EXP.PART_TS",
+                "pivot_id": "S_2367_0_2_27",
+                "pivot_type": "DpsTyp",
+                "pivot_subtypes": [
+                    "42"
+                ],
+                "protocols": [
+                    {
+                        "address": "37873-21096",
+                        "name": "iec104",
+                        "typeid": "M_DP_NA_1"
+                    }
+                ]
+            }
+        ]
+    }
+});
+
 // PLUGIN DEFAULT TLS CONF
 static string tls_config = QUOTE({
         "tls_conf" : {
@@ -1781,7 +1914,6 @@ protected:
 
             return false;
         }
-        printf("MOSSSSSSSSSSSSS\n");
 
         return true;
     }
@@ -1887,6 +2019,75 @@ TEST_F(ConfigTest, ConfigTest23) {
     iec104->setJsonConfig(protocol_config,exchanged_data,tls_config);
 }
 
+// Test for nominal GI triggering TS
+TEST_F(ConfigTest, ConfigTest24) {
+    IEC104ClientConfig config;
+
+    config.importProtocolConfig(protocol_config);
+    config.importExchangeConfig(gi_triggering_ts_exchange_data);
+    config.importTlsConfig(tls_config);
+
+    ASSERT_TRUE(config.isConfigComplete());
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 20706));
+    ASSERT_TRUE(config.isTsAddressCgTriggering(37873, 21096));
+    ASSERT_TRUE(config.isTsAddressCgTriggering(37873, 3519059));
+}
+
+// Test for error case in pivot subtype GI triggering TS
+TEST_F(ConfigTest, ConfigTest25) {
+    IEC104ClientConfig config;
+
+    config.importProtocolConfig(protocol_config);
+    config.importExchangeConfig(gi_triggering_ts_exchange_data_pivot_subtype_type_error);
+    config.importTlsConfig(tls_config);
+
+    ASSERT_TRUE(config.isConfigComplete());
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 20706));
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 21096));
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 3519059));
+}
+
+// Test for error case in pivot subtype GI triggering TS
+TEST_F(ConfigTest, ConfigTest26) {
+    IEC104ClientConfig config;
+
+    config.importProtocolConfig(protocol_config);
+    config.importExchangeConfig(gi_triggering_ts_exchange_data_pivot_subtype_empty_array_error);
+    config.importTlsConfig(tls_config);
+
+    ASSERT_TRUE(config.isConfigComplete());
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 20706));
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 21096));
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 3519059));
+}
+
+// Test for error case in pivot subtype GI triggering TS
+TEST_F(ConfigTest, ConfigTest27) {
+    IEC104ClientConfig config;
+
+    config.importProtocolConfig(protocol_config);
+    config.importExchangeConfig(gi_triggering_ts_exchange_data_pivot_subtype_array_type_error);
+    config.importTlsConfig(tls_config);
+
+    ASSERT_TRUE(config.isConfigComplete());
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 20706));
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 21096));
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 3519059));
+}
+
+// Test for error case in pivot subtype GI triggering TS
+TEST_F(ConfigTest, ConfigTest28) {
+    IEC104ClientConfig config;
+
+    config.importProtocolConfig(protocol_config);
+    config.importExchangeConfig(gi_triggering_ts_exchange_data_pivot_subtype_array_content_error);
+    config.importTlsConfig(tls_config);
+
+    ASSERT_TRUE(config.isConfigComplete());
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 20706));
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 21096));
+    ASSERT_FALSE(config.isTsAddressCgTriggering(37873, 3519059));
+}
 
 // TEST_F(ConfigTest, ConfigTest1)
 // {
@@ -1896,6 +2097,7 @@ TEST_F(ConfigTest, ConfigTest23) {
 //     ingestCallbackCalled = 0;
 
 //     CS104_Slave slave = CS104_Slave_create(15, 15);
+//     ASSERT_NE(slave, nullptr);
 
 //     CS104_Slave_setLocalPort(slave, TEST_PORT);
 

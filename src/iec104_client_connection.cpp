@@ -95,8 +95,6 @@ IEC104ClientConnection::m_connectionHandler(void* parameter, CS104_Connection co
         self->m_connectionState = CON_STATE_CLOSED;
         self->m_connected = false;
         self->m_connecting = false;
-
-        self->m_client->sendCnxLossStatus(false);
     }
     else if (event == CS104_CONNECTION_OPENED)
     {
@@ -678,6 +676,11 @@ IEC104ClientConnection::executePeriodicTasks()
                         Iec104Utility::log_debug("%s Starting GI cycle after end of init", beforeLog.c_str());
                         startNewInterrogationCycle();
                     }
+                    if (getGiRequested() && (m_client->getGiStatus() == IEC104Client::GiStatus::FAILED || m_client->getGiStatus() == IEC104Client::GiStatus::FINISHED)) {
+                        Iec104Utility::log_debug("%s Starting GI cycle on request.", beforeLog.c_str());
+                        setGiRequested(false);
+                        startNewInterrogationCycle();
+                    }
                 }
             }
         }
@@ -800,8 +803,6 @@ IEC104ClientConnection::m_asduReceivedHandler(void* parameter, int address,
 
                                 self->m_client->updateQualityForDataObjectsNotReceivedInGIResponse(IEC60870_QUALITY_INVALID);
 
-                                self->m_client->sendCnxLossStatus(true);
-                                self->m_client->sendCnxLossStatus(false); // transient single point reset
                                 Iec104Utility::log_debug("%s Received ACT_TERM", beforeLog.c_str());
                             }
                             else {
