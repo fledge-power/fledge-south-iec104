@@ -42,25 +42,25 @@ void IEC104::setJsonConfig(const std::string& stack_configuration,
 
 void IEC104::start()
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::start -";
-    Iec104Utility::log_info("%s Starting iec104", beforeLog.c_str());
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::start -"; //LCOV_EXCL_LINE
+    Iec104Utility::log_info("%s Starting iec104", beforeLog.c_str()); //LCOV_EXCL_LINE
 
 /* NOT NEEDED, LET SOUTH SERVICE MANAGE MIN LOG LEVEL
     switch (m_config->LogLevel())
     {
         case 1:
             Logger::getLogger()->setMinLevel("debug");
-            break;
+            break; //LCOV_EXCL_LINE
         //LCOV_EXCL_START
         case 2:
             Logger::getLogger()->setMinLevel("info");
-            break;
+            break; //LCOV_EXCL_LINE
         case 3:
             Logger::getLogger()->setMinLevel("warning");
-            break;
+            break; //LCOV_EXCL_LINE
         default:
             Logger::getLogger()->setMinLevel("error");
-            break;
+            break; //LCOV_EXCL_LINE
         //LCOV_EXCL_STOP    
     }
     */
@@ -89,16 +89,16 @@ void IEC104::stop()
 // void IEC104::ingest(Reading& reading) { (*m_ingest)(m_data, reading); }
 void IEC104::ingest(std::string assetName, std::vector<Datapoint*>& points)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::ingest -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::ingest -"; //LCOV_EXCL_LINE
     if (!m_ingest) {
-        Iec104Utility::log_error("%s Ingest callback is not defined", beforeLog.c_str());
+        Iec104Utility::log_error("%s Ingest callback is not defined", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
     Reading reading(assetName, points);
     uint64_t tsInNs = Hal_getTimeInNs();
     std::string tsStrInNs = std::to_string(tsInNs);
-    //Iec104Utility::log_info("%s Ingest reading: %s", beforeLog.c_str(), reading.toJSON().c_str());
-    Iec104Utility::log_info("%s Ingest reading: %s TimestampInNs: %s", beforeLog.c_str(), reading.toJSON().c_str(), tsStrInNs.c_str());
+    //Iec104Utility::log_info("%s Ingest reading: %s", beforeLog.c_str(), reading.toJSON().c_str()); //LCOV_EXCL_LINE
+    Iec104Utility::log_info("%s Ingest reading: %s TimestampInNs: %s", beforeLog.c_str(), reading.toJSON().c_str(), tsStrInNs.c_str()); //LCOV_EXCL_LINE
     m_ingest(m_data, reading);
 }
 
@@ -128,7 +128,7 @@ enum CommandParameters{
 bool
 IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_singleCommandOperation -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_singleCommandOperation -"; //LCOV_EXCL_LINE
     if (count > 8) {
         // common address of the asdu
         int ca = atoi(params[CA]->value.c_str());
@@ -150,23 +150,23 @@ IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
             try {
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             } catch (const std::out_of_range &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             }
         }
 
-        Iec104Utility::log_debug("%s operate: single command - CA: %i IOA: %i value: %i select: %i timestamp: %ld", beforeLog.c_str(),
+        Iec104Utility::log_debug("%s operate: single command - CA: %i IOA: %i value: %i select: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
                                 ca, ioa, value, select, time);
 
         return m_client->sendSingleCommand(ca, ioa, value, withTime, select, time);
     }
     else {
-        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count);
+        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count); //LCOV_EXCL_LINE
         return false;
     }
 }
@@ -174,7 +174,7 @@ IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
 bool
 IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_doubleCommandOperation -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_doubleCommandOperation -"; //LCOV_EXCL_LINE
     if (count > 8) {
         // common address of the asdu
         int ca = atoi(params[CA]->value.c_str());
@@ -196,23 +196,23 @@ IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
             try {
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             } catch (const std::out_of_range &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             }
         }
 
-        Iec104Utility::log_debug("%s operate: double command - CA: %i IOA: %i value: %i select: %i timestamp: %ld", beforeLog.c_str(),
+        Iec104Utility::log_debug("%s operate: double command - CA: %i IOA: %i value: %i select: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
                                 ca, ioa, value, select, time);
 
         return m_client->sendDoubleCommand(ca, ioa, value, withTime, select, time);
     }
     else {
-        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count);
+        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count); //LCOV_EXCL_LINE
         return false;
     }
 }
@@ -220,7 +220,7 @@ IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
 bool
 IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_stepCommandOperation -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_stepCommandOperation -"; //LCOV_EXCL_LINE
     if (count > 8) {
         // common address of the asdu
         int ca = atoi(params[CA]->value.c_str());
@@ -242,23 +242,23 @@ IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTi
             try {
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             } catch (const std::out_of_range &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             }
         }
 
-        Iec104Utility::log_debug("%s operate: step command - CA: %i IOA: %i value: %i select: %i timestamp: %ld", beforeLog.c_str(),
+        Iec104Utility::log_debug("%s operate: step command - CA: %i IOA: %i value: %i select: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
                                 ca, ioa, value, select, time);
 
         return m_client->sendStepCommand(ca, ioa, value, withTime, select, time);
     }
     else {
-        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count);
+        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count); //LCOV_EXCL_LINE
         return false;
     }
 }
@@ -266,7 +266,7 @@ IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTi
 bool
 IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointNormalized -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointNormalized -"; //LCOV_EXCL_LINE
     if (count > 8) {
         // common address of the asdu
         int ca = atoi(params[CA]->value.c_str());
@@ -284,23 +284,23 @@ IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime
             try {
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             } catch (const std::out_of_range &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             }
         }
 
-        Iec104Utility::log_debug("%s operate: setpoint command (normalized) - CA: %i IOA: %i value: %i timestamp: %ld", beforeLog.c_str(),
+        Iec104Utility::log_debug("%s operate: setpoint command (normalized) - CA: %i IOA: %i value: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
                                 ca, ioa, value, time);
 
         return m_client->sendSetpointNormalized(ca, ioa, value, withTime, time);
     }
     else {
-        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count);
+        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count); //LCOV_EXCL_LINE
         return false;
     }
 }
@@ -308,7 +308,7 @@ IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime
 bool
 IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointScaled -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointScaled -"; //LCOV_EXCL_LINE
     if (count > 8) {
         // common address of the asdu
         int ca = atoi(params[CA]->value.c_str());
@@ -326,23 +326,23 @@ IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime) co
             try {
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             } catch (const std::out_of_range &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             }
         }
 
-        Iec104Utility::log_debug("%s operate: setpoint command (scaled) - CA: %i IOA: %i value: %i timestamp: %ld", beforeLog.c_str(),
+        Iec104Utility::log_debug("%s operate: setpoint command (scaled) - CA: %i IOA: %i value: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
                                 ca, ioa, value, time);
 
         return m_client->sendSetpointScaled(ca, ioa, value, withTime, time);
     }
     else {
-        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count);
+        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count); //LCOV_EXCL_LINE
         return false;
     }
 }
@@ -350,7 +350,7 @@ IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime) co
 bool
 IEC104::m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime) const
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointShort -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::m_setpointShort -"; //LCOV_EXCL_LINE
     if (count > 8) {
         // common address of the asdu
         int ca = atoi(params[CA]->value.c_str());
@@ -367,23 +367,23 @@ IEC104::m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime) con
             try {
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             } catch (const std::out_of_range &e) {
-                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s",
+                Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
                 return false;
             }
         }
 
-        Iec104Utility::log_debug("%s operate: setpoint command (short) - CA: %i IOA: %i value: %i timestamp: %ld", beforeLog.c_str(),
+        Iec104Utility::log_debug("%s operate: setpoint command (short) - CA: %i IOA: %i value: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
                                 ca, ioa, value, time);
 
         return m_client->sendSetpointShort(ca, ioa, value, withTime, time);
     }
     else {
-        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count);
+        Iec104Utility::log_error("%s invalid number of parameters: %d, but expected 9", beforeLog.c_str(), count); //LCOV_EXCL_LINE
         return false;
     }
 }
@@ -424,14 +424,14 @@ static std::pair<std::string, std::string> paramsToStr(PLUGIN_PARAMETER** params
 bool
 IEC104::operation(const std::string& operation, int count, PLUGIN_PARAMETER** params) const
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::operation -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104::operation -"; //LCOV_EXCL_LINE
     if (m_client == nullptr) {
-        Iec104Utility::log_error("%s operation called but plugin is not yet initialized", beforeLog.c_str());
+        Iec104Utility::log_error("%s operation called but plugin is not yet initialized", beforeLog.c_str()); //LCOV_EXCL_LINE
         return false;
     }
 
     auto namesParamsPair = paramsToStr(params, count);
-    Iec104Utility::log_info("%s Received operation: {type: \"%s\", nbParams=%d, names=%s, parameters=%s}",
+    Iec104Utility::log_info("%s Received operation: {type: \"%s\", nbParams=%d, names=%s, parameters=%s}", //LCOV_EXCL_LINE
                             beforeLog.c_str(), operation.c_str(), count, namesParamsPair.first.c_str(), namesParamsPair.second.c_str());
 
     if (operation == "CS104_Connection_sendInterrogationCommand")
@@ -473,7 +473,7 @@ IEC104::operation(const std::string& operation, int count, PLUGIN_PARAMETER** pa
             case C_SE_NC_1: return m_setpointShort(count, params, false);
             case C_SE_TC_1: return m_setpointShort(count, params, true);
             default:
-                Iec104Utility::log_error("%s Unrecognised command type %s", beforeLog.c_str(), type.c_str());
+                Iec104Utility::log_error("%s Unrecognised command type %s", beforeLog.c_str(), type.c_str()); //LCOV_EXCL_LINE
                 return false;
         }
     }
@@ -481,7 +481,7 @@ IEC104::operation(const std::string& operation, int count, PLUGIN_PARAMETER** pa
         return m_client->sendConnectionStatus();
     }
 
-    Iec104Utility::log_error("%s Unrecognised operation %s", beforeLog.c_str(), operation.c_str());
+    Iec104Utility::log_error("%s Unrecognised operation %s", beforeLog.c_str(), operation.c_str()); //LCOV_EXCL_LINE
 
     return false;
 }

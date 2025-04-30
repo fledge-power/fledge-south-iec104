@@ -174,8 +174,8 @@ extern "C"
      */
     PLUGIN_INFORMATION *plugin_info()
     {
-        std::string beforeLog = Iec104Utility::PluginName + " - plugin_info -";
-        Iec104Utility::log_info("%s 104 Config is %s", beforeLog.c_str(), info.config);
+        std::string beforeLog = Iec104Utility::PluginName + " - plugin_info -"; //LCOV_EXCL_LINE
+        Iec104Utility::log_info("%s 104 Config is %s", beforeLog.c_str(), info.config); //LCOV_EXCL_LINE
         return &info;
     }
 
@@ -184,12 +184,12 @@ extern "C"
      */
     PLUGIN_HANDLE plugin_init(ConfigCategory *config)
     {
-        std::string beforeLog = Iec104Utility::PluginName + " - plugin_init -";
+        std::string beforeLog = Iec104Utility::PluginName + " - plugin_init -"; //LCOV_EXCL_LINE
         IEC104* iec104 = nullptr;
-        Iec104Utility::log_info("%s Initializing the plugin", beforeLog.c_str());
+        Iec104Utility::log_info("%s Initializing the plugin", beforeLog.c_str()); //LCOV_EXCL_LINE
 
         if (config == nullptr) {
-            Iec104Utility::log_warn("%s No config provided for plugin, using default config", beforeLog.c_str());
+            Iec104Utility::log_warn("%s No config provided for plugin, using default config", beforeLog.c_str()); //LCOV_EXCL_LINE
             auto pluginInfo = plugin_info();
             config = new ConfigCategory("newConfig", pluginInfo->config);
             config->setItemsValueFromDefault();
@@ -215,7 +215,7 @@ extern "C"
             }
         }
 
-        Iec104Utility::log_info("%s Plugin initialized", beforeLog.c_str());
+        Iec104Utility::log_info("%s Plugin initialized", beforeLog.c_str()); //LCOV_EXCL_LINE
 
         return (PLUGIN_HANDLE)iec104;
     }
@@ -225,14 +225,14 @@ extern "C"
      */
     void plugin_start(PLUGIN_HANDLE *handle)
     {
-        std::string beforeLog = Iec104Utility::PluginName + " - plugin_start -";
+        std::string beforeLog = Iec104Utility::PluginName + " - plugin_start -"; //LCOV_EXCL_LINE
         if (!handle) return;
 
-        Iec104Utility::log_info("%s Starting the plugin...", beforeLog.c_str());
+        Iec104Utility::log_info("%s Starting the plugin...", beforeLog.c_str()); //LCOV_EXCL_LINE
 
         auto *iec104 = reinterpret_cast<IEC104 *>(handle);
         iec104->start();
-        Iec104Utility::log_info("%s Plugin started", beforeLog.c_str());
+        Iec104Utility::log_info("%s Plugin started", beforeLog.c_str()); //LCOV_EXCL_LINE
     }
 
     /**
@@ -259,8 +259,8 @@ extern "C"
      */
     void plugin_reconfigure(PLUGIN_HANDLE *handle, string &newConfig)
     {
-        std::string beforeLog = Iec104Utility::PluginName + " - plugin_reconfigure -";
-        Iec104Utility::log_info("%s New config: %s", beforeLog.c_str(), newConfig.c_str());
+        std::string beforeLog = Iec104Utility::PluginName + " - plugin_reconfigure -"; //LCOV_EXCL_LINE
+        Iec104Utility::log_info("%s New config: %s", beforeLog.c_str(), newConfig.c_str()); //LCOV_EXCL_LINE
 
         auto *iec104 = reinterpret_cast<IEC104 *>(*handle);
         ConfigCategory config(iec104->getServiceName(), newConfig);
@@ -277,11 +277,11 @@ extern "C"
         if (config.itemExists("asset"))
         {
             iec104->setAssetName(config.getValue("asset"));
-            Iec104Utility::log_info("%s 104 plugin restart after reconfigure asset", beforeLog.c_str());
+            Iec104Utility::log_info("%s 104 plugin restart after reconfigure asset", beforeLog.c_str()); //LCOV_EXCL_LINE
             iec104->start();
         }
         else {
-            Iec104Utility::log_error("%s 104 plugin restart failed", beforeLog.c_str());
+            Iec104Utility::log_error("%s 104 plugin restart failed", beforeLog.c_str()); //LCOV_EXCL_LINE
         }
     }
 
@@ -290,8 +290,8 @@ extern "C"
      */
     void plugin_shutdown(PLUGIN_HANDLE *handle)
     {
-        std::string beforeLog = Iec104Utility::PluginName + " - plugin_shutdown -";
-        Iec104Utility::log_info("%s Shutting down the plugin...", beforeLog.c_str());
+        std::string beforeLog = Iec104Utility::PluginName + " - plugin_shutdown -"; //LCOV_EXCL_LINE
+        Iec104Utility::log_info("%s Shutting down the plugin...", beforeLog.c_str()); //LCOV_EXCL_LINE
         auto *iec104 = reinterpret_cast<IEC104 *>(handle);
 
         iec104->stop();

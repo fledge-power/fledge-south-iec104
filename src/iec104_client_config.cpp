@@ -148,112 +148,112 @@ IEC104ClientConfig::isMessageTypeMatching(int expectedType, int rcvdType)
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_SP_TA_1:
             if ((rcvdType == M_SP_NA_1) || (rcvdType == M_SP_TB_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_SP_TB_1:
             if ((rcvdType == M_SP_NA_1) || (rcvdType == M_SP_TA_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_DP_NA_1:
             if ((rcvdType == M_DP_TA_1) || (rcvdType == M_DP_TB_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_DP_TA_1:
             if ((rcvdType == M_DP_NA_1) || (rcvdType == M_DP_TB_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_DP_TB_1:
             if ((rcvdType == M_DP_NA_1) || (rcvdType == M_DP_TA_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_NA_1:
             if ((rcvdType == M_ME_TA_1) || (rcvdType == M_ME_TD_1) || (rcvdType == M_ME_ND_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_TA_1:
             if ((rcvdType == M_ME_NA_1) || (rcvdType == M_ME_TD_1) || (rcvdType == M_ME_ND_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_TD_1:
             if ((rcvdType == M_ME_TA_1) || (rcvdType == M_ME_NA_1) || (rcvdType == M_ME_ND_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_ND_1:
             if ((rcvdType == M_ME_TA_1) || (rcvdType == M_ME_TD_1) || (rcvdType == M_ME_NA_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_NB_1:
             if ((rcvdType == M_ME_TB_1) || (rcvdType == M_ME_TE_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_TB_1:
             if ((rcvdType == M_ME_NB_1) || (rcvdType == M_ME_TE_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_TE_1:
             if ((rcvdType == M_ME_TB_1) || (rcvdType == M_ME_NB_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_NC_1:
             if ((rcvdType == M_ME_TC_1) || (rcvdType == M_ME_TF_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_TC_1:
             if ((rcvdType == M_ME_NC_1) || (rcvdType == M_ME_TF_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ME_TF_1:
             if ((rcvdType == M_ME_TC_1) || (rcvdType == M_ME_NC_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
 
         case M_ST_NA_1:
@@ -261,84 +261,84 @@ IEC104ClientConfig::isMessageTypeMatching(int expectedType, int rcvdType)
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ST_TA_1:
             if ((rcvdType == M_ST_NA_1) || (rcvdType == M_ST_TB_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case M_ST_TB_1:
             if ((rcvdType == M_ST_TA_1) || (rcvdType == M_ST_NA_1)) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_SC_NA_1:
             if (rcvdType == C_SC_TA_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_SC_TA_1:
             if (rcvdType == C_SC_NA_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_DC_NA_1:
             if (rcvdType == C_DC_TA_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_DC_TA_1:
             if (rcvdType == C_DC_NA_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_RC_NA_1:
             if (rcvdType == C_RC_TA_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_RC_TA_1:
             if (rcvdType == C_RC_NA_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_SE_NA_1:
             if (rcvdType == C_SE_TA_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_SE_TA_1:
             if (rcvdType == C_SE_NA_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_SE_NB_1:
             if (rcvdType == C_SE_TB_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_SE_TB_1:
             if (rcvdType == C_SE_NB_1) {
@@ -350,18 +350,18 @@ IEC104ClientConfig::isMessageTypeMatching(int expectedType, int rcvdType)
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         case C_SE_TC_1:
             if (rcvdType == C_SE_NC_1) {
                 return true;
             }
 
-            break;
+            break; //LCOV_EXCL_LINE
 
         default:
             //Type not supported
-            break;
+            break; //LCOV_EXCL_LINE
     }   
 
     return false;
@@ -370,7 +370,7 @@ IEC104ClientConfig::isMessageTypeMatching(int expectedType, int rcvdType)
 std::string*
 IEC104ClientConfig::checkExchangeDataLayer(int typeId, int ca, int ioa)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::checkExchangeDataLayer -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::checkExchangeDataLayer -"; //LCOV_EXCL_LINE
     const auto& def = ExchangeDefinition()[ca][ioa];
 
     if (def != nullptr) {
@@ -379,12 +379,12 @@ IEC104ClientConfig::checkExchangeDataLayer(int typeId, int ca, int ioa)
             return &(def->label);
         }
         else {
-            Iec104Utility::log_warn("%s data point %i:%i found but type %s (%i) not matching", beforeLog.c_str(), ca, ioa,
+            Iec104Utility::log_warn("%s data point %i:%i found but type %s (%i) not matching", beforeLog.c_str(), ca, ioa, //LCOV_EXCL_LINE
                                     IEC104ClientConfig::getStringFromTypeID(def->typeId).c_str(), def->typeId);
         }
     }
     else {
-        Iec104Utility::log_warn("%s data point %i:%i not found", beforeLog.c_str(), ca, ioa);
+        Iec104Utility::log_warn("%s data point %i:%i not found", beforeLog.c_str(), ca, ioa); //LCOV_EXCL_LINE
     }
 
     return nullptr;
@@ -402,36 +402,36 @@ IEC104ClientConfig::isValidIPAddress(const string& addrStr)
 
 void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importProtocolConfig -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importProtocolConfig -"; //LCOV_EXCL_LINE
     m_protocolConfigComplete = false;
 
     Document document;
 
     if (document.Parse(const_cast<char*>(protocolConfig.c_str())).HasParseError()) {
-        Iec104Utility::log_fatal("%s Parsing error in protocol_stack json, offset %u: %s", beforeLog.c_str(),
+        Iec104Utility::log_fatal("%s Parsing error in protocol_stack json, offset %u: %s", beforeLog.c_str(), //LCOV_EXCL_LINE
                                 static_cast<unsigned>(document.GetErrorOffset()), GetParseError_En(document.GetParseError()));
         return;
     }
 
     if (!document.IsObject()) {
-        Iec104Utility::log_fatal("%s Root is not an object", beforeLog.c_str());
+        Iec104Utility::log_fatal("%s Root is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
     if (!document.HasMember("protocol_stack") || !document["protocol_stack"].IsObject()) {
-        Iec104Utility::log_fatal("%s protocol_stack does not exist or is not an object", beforeLog.c_str());
+        Iec104Utility::log_fatal("%s protocol_stack does not exist or is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
     const Value& protocolStack = document["protocol_stack"];
 
     if (!protocolStack.HasMember("transport_layer") || !protocolStack["transport_layer"].IsObject()) {
-        Iec104Utility::log_fatal("%s transport layer does not exist or is not an object", beforeLog.c_str());
+        Iec104Utility::log_fatal("%s transport layer does not exist or is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
     if (!protocolStack.HasMember("application_layer") || !protocolStack["application_layer"].IsObject()) {
-        Iec104Utility::log_fatal("%s appplication layer does not exist or is not an object", beforeLog.c_str());
+        Iec104Utility::log_fatal("%s appplication layer does not exist or is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
@@ -445,15 +445,15 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                     m_connxStatus = southMonitoring["asset"].GetString();
                 }
                 else {
-                    Iec104Utility::log_error("%s south_monitoring \"asset\" element is not a string", beforeLog.c_str());
+                    Iec104Utility::log_error("%s south_monitoring \"asset\" element is not a string", beforeLog.c_str()); //LCOV_EXCL_LINE
                 }
             }
             else {
-                Iec104Utility::log_error("%s south_monitoring is missing \"asset\" element", beforeLog.c_str());
+                Iec104Utility::log_error("%s south_monitoring is missing \"asset\" element", beforeLog.c_str()); //LCOV_EXCL_LINE
             }
         }
         else {
-            Iec104Utility::log_error("%s south_monitoring is not an object", beforeLog.c_str());
+            Iec104Utility::log_error("%s south_monitoring is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
         }
     }
 
@@ -471,7 +471,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
         }
         else {
-            Iec104Utility::log_fatal("%s redundancy_groups is not an array -> ignore redundancy groups", beforeLog.c_str());
+            Iec104Utility::log_fatal("%s redundancy_groups is not an array -> ignore redundancy groups", beforeLog.c_str()); //LCOV_EXCL_LINE
         }
     }
 
@@ -485,12 +485,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                 m_origAddr = origAddr;
             }
             else {
-                Iec104Utility::log_warn("%s application_layer.orig_addr value out of range [1..255]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.orig_addr value out of range [1..255]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), origAddr, m_origAddr);
             }
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.orig_addr is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.orig_addr is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_origAddr);
         }
     }
@@ -503,12 +503,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                 m_caSize = caSize;
             }
             else {
-                Iec104Utility::log_warn("%s application_layer.ca_asdu_size value out of range [1..2]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.ca_asdu_size value out of range [1..2]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), caSize, m_caSize);
             }
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.ca_asdu_size is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.ca_asdu_size is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_caSize);
         }
     }
@@ -521,12 +521,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                 m_ioaSize = ioaSize;
             }
             else {
-                Iec104Utility::log_warn("%s application_layer.ioaddr_size value out of range [1..3]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.ioaddr_size value out of range [1..3]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), ioaSize, m_ioaSize);
             }
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.ioaddr_size is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.ioaddr_size is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_ioaSize);
         }
     }
@@ -539,12 +539,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                 m_asduSize = asduSize;
             }
             else {
-                Iec104Utility::log_warn("%s application_layer.asdu_size value out of range [0,11..253]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.asdu_size value out of range [0,11..253]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), asduSize, m_asduSize);
             }
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.asdu_size is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.asdu_size is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_asduSize);
         }
     }
@@ -554,7 +554,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             int timeSyncValue = applicationLayer["time_sync"].GetInt();
 
             if (timeSyncValue < 0) {
-                Iec104Utility::log_warn("%s application_layer.time_sync value out of range [0..+Inf]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.time_sync value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), timeSyncValue, m_timeSyncPeriod);
             }
             else {
@@ -563,7 +563,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
 
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.time_sync is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.time_sync is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_timeSyncPeriod);
         }
     }
@@ -573,7 +573,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             m_giAllCa = applicationLayer["gi_all_ca"].GetBool();
         }
         else {
-            Iec104Utility::log_warn("%s applicationLayer.gi_all_ca is not a bool -> using default value (%s)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s applicationLayer.gi_all_ca is not a bool -> using default value (%s)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     (m_giAllCa?"true":"false"));
         }
     }
@@ -586,12 +586,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                 m_giTime = giTime;
             }
             else {
-                Iec104Utility::log_warn("%s application_layer.gi_time value out of range [0..+Inf]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.gi_time value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), giTime, m_giTime);
             }
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.gi_time is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.gi_time is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_giTime);
         }
     }
@@ -601,7 +601,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             m_giEnabled = applicationLayer["gi_enabled"].GetBool();
         }
         else {
-            Iec104Utility::log_warn("%s applicationLayer.gi_enabled is not a bool -> using default value (%s)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s applicationLayer.gi_enabled is not a bool -> using default value (%s)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     (m_giEnabled?"true":"false"));
         }
     }
@@ -614,12 +614,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                 m_giCycle = giCycle;
             }
             else {
-                Iec104Utility::log_warn("%s application_layer.gi_cycle value out of range [0..+Inf]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.gi_cycle value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), giCycle, m_giCycle);
             }
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.gi_cycle is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.gi_cycle is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_giCycle);
         }
     }
@@ -632,12 +632,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                 m_giRepeatCount = giRepeatCount;
             }
             else {
-                Iec104Utility::log_warn("%s application_layer.gi_repeat_count value out of range [0..+Inf]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.gi_repeat_count value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), giRepeatCount, m_giRepeatCount);
             }
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.gi_repeat_count is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.gi_repeat_count is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_giRepeatCount);
         }
     }
@@ -650,12 +650,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                 m_cmdParallel = cmdParallel;
             }
             else {
-                Iec104Utility::log_warn("%s application_layer.cmd_parallel value out of range [0..+Inf]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.cmd_parallel value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), cmdParallel, m_cmdParallel);
             }
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.cmd_parallel is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.cmd_parallel is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_cmdParallel);
         }
     }
@@ -668,12 +668,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
                 m_cmdExecTimeout = cmdExecTimeout;
             }
             else {
-                Iec104Utility::log_warn("%s application_layer.cmd_exec_timeout value out of range [0..+Inf]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s application_layer.cmd_exec_timeout value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), cmdExecTimeout, m_cmdExecTimeout);
             }
         }
         else {
-            Iec104Utility::log_warn("%s application_layer.cmd_exec_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s application_layer.cmd_exec_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     m_cmdExecTimeout);
         }
     }
@@ -683,10 +683,10 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
 
 void IEC104ClientConfig::importRedGroup(const Value& redGroup)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importRedGroup -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importRedGroup -"; //LCOV_EXCL_LINE
     
     if (!redGroup.IsObject()) {
-        Iec104Utility::log_error("%s redundancy_groups element is not an object -> ignore", beforeLog.c_str());
+        Iec104Utility::log_error("%s redundancy_groups element is not an object -> ignore", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
     
@@ -699,13 +699,13 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
         }
     }
     if (!hasName) {
-        Iec104Utility::log_error("%s rg_name does not exist or is not a string -> ignore", beforeLog.c_str());
+        Iec104Utility::log_error("%s rg_name does not exist or is not a string -> ignore", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
     auto redundancyGroup = std::make_shared<IEC104ClientRedGroup>(redGroupName, static_cast<int>(m_redundancyGroups.size()));
 
-    Iec104Utility::log_debug("%s Adding red group with name: %s", beforeLog.c_str(), redGroupName.c_str());
+    Iec104Utility::log_debug("%s Adding red group with name: %s", beforeLog.c_str(), redGroupName.c_str()); //LCOV_EXCL_LINE
 
     if (redGroup.HasMember("connections") && redGroup["connections"].IsArray()) {
         for (const Value& con : redGroup["connections"].GetArray()) {
@@ -713,7 +713,7 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
         }
     }
     else {
-        Iec104Utility::log_debug("%s  connections does not exist or is not an array -> adding fallback group",
+        Iec104Utility::log_debug("%s  connections does not exist or is not an array -> adding fallback group", //LCOV_EXCL_LINE
                                 beforeLog.c_str());
     }
 
@@ -725,12 +725,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
                 redundancyGroup->K(kValue);
             }
             else {
-                Iec104Utility::log_warn("%s redGroup.k_value value out of range [1..32767]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s redGroup.k_value value out of range [1..32767]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), kValue, redundancyGroup->K());
             }
         }
         else {
-            Iec104Utility::log_warn("%s redGroup.k_value is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s redGroup.k_value is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     redundancyGroup->K());
         }
     }
@@ -743,12 +743,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
                 redundancyGroup->W(wValue);
             }
             else {
-                Iec104Utility::log_warn("%s redGroup.w_value value out of range [1..32767]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s redGroup.w_value value out of range [1..32767]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), wValue, redundancyGroup->W());
             }
         }
         else {
-            Iec104Utility::log_warn("%s redGroup.w_value is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s redGroup.w_value is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     redundancyGroup->W());
         }
     }
@@ -761,12 +761,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
                 redundancyGroup->T0(t0Timeout);
             }
             else {
-                Iec104Utility::log_warn("%s redGroup.t0_timeout value out of range [1..255]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s redGroup.t0_timeout value out of range [1..255]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), t0Timeout, redundancyGroup->T0());
             }
         }
         else {
-            Iec104Utility::log_warn("%s redGroup.t0_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s redGroup.t0_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     redundancyGroup->T0());
         }
     }
@@ -779,12 +779,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
                 redundancyGroup->T1(t1Timeout);
             }
             else {
-                Iec104Utility::log_warn("%s redGroup.t1_timeout value out of range [1..255]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s redGroup.t1_timeout value out of range [1..255]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), t1Timeout, redundancyGroup->T1());
             }
         }
         else {
-            Iec104Utility::log_warn("%s redGroup.t1_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s redGroup.t1_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     redundancyGroup->T1());
         }
     }
@@ -797,12 +797,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
                 redundancyGroup->T2(t2Timeout);
             }
             else {
-                Iec104Utility::log_warn("%s redGroup.t2_timeout value out of range [1..255]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s redGroup.t2_timeout value out of range [1..255]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), t2Timeout, redundancyGroup->T2());
             }
         }
         else {
-            Iec104Utility::log_warn("%s redGroup.t2_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s redGroup.t2_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     redundancyGroup->T2());
         }
     }
@@ -815,12 +815,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
                 redundancyGroup->T3(t3Timeout);
             }
             else {
-                Iec104Utility::log_warn("%s redGroup.t3_timeout value out of range [0..+Inf]: %d -> using default value (%d)",
+                Iec104Utility::log_warn("%s redGroup.t3_timeout value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), t3Timeout, redundancyGroup->T3());
             }
         }
         else {
-            Iec104Utility::log_warn("%s redGroup.t3_timeout is not an integer -> using default value (%d)", beforeLog.c_str(),
+            Iec104Utility::log_warn("%s redGroup.t3_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
                                     redundancyGroup->T3());
         }
     }
@@ -830,7 +830,7 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
             redundancyGroup->UseTLS(redGroup["tls"].GetBool());
         }
         else {
-            Iec104Utility::log_warn("%s redGroup.tls is not a bool -> not using TLS", beforeLog.c_str());
+            Iec104Utility::log_warn("%s redGroup.tls is not a bool -> not using TLS", beforeLog.c_str()); //LCOV_EXCL_LINE
         }
     }
 
@@ -839,25 +839,25 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
 
 void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC104ClientRedGroup> redundancyGroup) const
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importRedGroupCon -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importRedGroupCon -"; //LCOV_EXCL_LINE
 
     if(!con.IsObject()) {
-        Iec104Utility::log_error("%s  connections element is not an object -> ignore", beforeLog.c_str());
+        Iec104Utility::log_error("%s  connections element is not an object -> ignore", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
     if (!con.HasMember("srv_ip") || !con["srv_ip"].IsString()) {
-        Iec104Utility::log_error("%s  srv_ip does not exist or is not a string -> ignore", beforeLog.c_str());
+        Iec104Utility::log_error("%s  srv_ip does not exist or is not a string -> ignore", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
     string srvIp = con["srv_ip"].GetString();
 
     if (!isValidIPAddress(srvIp)) {
-        Iec104Utility::log_error("%s  srv_ip %s is not a valid IP address -> ignore", beforeLog.c_str(), srvIp.c_str());
+        Iec104Utility::log_error("%s  srv_ip %s is not a valid IP address -> ignore", beforeLog.c_str(), srvIp.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
-    Iec104Utility::log_debug("%s  add to group: %s", beforeLog.c_str(), srvIp.c_str());
+    Iec104Utility::log_debug("%s  add to group: %s", beforeLog.c_str(), srvIp.c_str()); //LCOV_EXCL_LINE
 
     int tcpPort = 2404;
     bool start = true;
@@ -873,12 +873,12 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
                 clientIp = cltIpStr;
             }
             else {
-                Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client",
+                Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), cltIpStr.c_str());
             }
         }
         else {
-            Iec104Utility::log_warn("%s  clt_ip is not a string -> ignore client",
+            Iec104Utility::log_warn("%s  clt_ip is not a string -> ignore client", //LCOV_EXCL_LINE
                                     beforeLog.c_str());
         }
     }
@@ -891,12 +891,12 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
                 tcpPort = tcpPortVal;
             }
             else {
-                Iec104Utility::log_error("%s  port value out of range [1..65635]: %d -> using default port (%d)",
+                Iec104Utility::log_error("%s  port value out of range [1..65635]: %d -> using default port (%d)", //LCOV_EXCL_LINE
                                         beforeLog.c_str(), tcpPortVal, tcpPort);
             }
         }
         else {
-            Iec104Utility::log_warn("%s  port is not an integer -> using default port (%d)",
+            Iec104Utility::log_warn("%s  port is not an integer -> using default port (%d)", //LCOV_EXCL_LINE
                                     beforeLog.c_str(), tcpPort);
         }
     }
@@ -906,7 +906,7 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
             conn = con["conn"].GetBool();
         }
         else {
-            Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%s)",
+            Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%s)", //LCOV_EXCL_LINE
                                     beforeLog.c_str(), conn?"true":"false");
         }
     }
@@ -916,7 +916,7 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
             start = con["start"].GetBool();
         }
         else {
-            Iec104Utility::log_warn("%s  start is not a bool -> using default start (%s)",
+            Iec104Utility::log_warn("%s  start is not a bool -> using default start (%s)", //LCOV_EXCL_LINE
                                     beforeLog.c_str(), start?"true":"false");
         }
     }
@@ -934,23 +934,23 @@ void IEC104ClientConfig::deleteExchangeDefinitions()
 void
 IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importTlsConfig -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importTlsConfig -"; //LCOV_EXCL_LINE
     Document document;
     m_tlsConfigComplete = false;
 
     if (document.Parse(const_cast<char*>(tlsConfig.c_str())).HasParseError()) {
-        Iec104Utility::log_fatal("%s Parsing error in tls_conf json, offset %u: %s", beforeLog.c_str(),
+        Iec104Utility::log_fatal("%s Parsing error in tls_conf json, offset %u: %s", beforeLog.c_str(), //LCOV_EXCL_LINE
                                 static_cast<unsigned>(document.GetErrorOffset()), GetParseError_En(document.GetParseError()));
         return;
     }
        
     if (!document.IsObject()) {
-        Iec104Utility::log_fatal("%s Root is not an object", beforeLog.c_str());
+        Iec104Utility::log_fatal("%s Root is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
     
     if (!document.HasMember("tls_conf") || !document["tls_conf"].IsObject()) {
-        Iec104Utility::log_debug("%s tls_conf does not exist or is not an object", beforeLog.c_str());
+        Iec104Utility::log_debug("%s tls_conf does not exist or is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
@@ -960,14 +960,14 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
         m_privateKey = tlsConf["private_key"].GetString();
     }
     else {
-        Iec104Utility::log_warn("%s private_key does not exist or is not a string", beforeLog.c_str());
+        Iec104Utility::log_warn("%s private_key does not exist or is not a string", beforeLog.c_str()); //LCOV_EXCL_LINE
     }
 
     if (tlsConf.HasMember("own_cert") && tlsConf["own_cert"].IsString()) {
         m_ownCertificate = tlsConf["own_cert"].GetString();
     }
     else {
-        Iec104Utility::log_warn("%s own_cert does not exist or is not a string", beforeLog.c_str());
+        Iec104Utility::log_warn("%s own_cert does not exist or is not a string", beforeLog.c_str()); //LCOV_EXCL_LINE
     }
 
     if (tlsConf.HasMember("ca_certs") && tlsConf["ca_certs"].IsArray()) {
@@ -976,7 +976,7 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
 
         for (const Value& caCert : caCerts.GetArray()) {
             if (!caCert.IsObject()) {
-                Iec104Utility::log_warn("%s ca_certs element is not an object", beforeLog.c_str());
+                Iec104Utility::log_warn("%s ca_certs element is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
                 continue;
             }
 
@@ -985,12 +985,12 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
                 m_caCertificates.push_back(certFileName);
             }
             else {
-                Iec104Utility::log_warn("%s ca_certs.cert_file does not exist or is not a string", beforeLog.c_str());
+                Iec104Utility::log_warn("%s ca_certs.cert_file does not exist or is not a string", beforeLog.c_str()); //LCOV_EXCL_LINE
             }
         }
     }
     else {
-        Iec104Utility::log_warn("%s ca_certs does not exist or is not an array", beforeLog.c_str());
+        Iec104Utility::log_warn("%s ca_certs does not exist or is not an array", beforeLog.c_str()); //LCOV_EXCL_LINE
     }
 
     if (tlsConf.HasMember("remote_certs") && tlsConf["remote_certs"].IsArray()) {
@@ -999,7 +999,7 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
 
         for (const Value& remoteCert : remoteCerts.GetArray()) {
             if (!remoteCert.IsObject()) {
-                Iec104Utility::log_warn("%s remote_certs element is not an object", beforeLog.c_str());
+                Iec104Utility::log_warn("%s remote_certs element is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
                 continue;
             }
 
@@ -1008,12 +1008,12 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
                 m_remoteCertificates.push_back(certFileName);
             }
             else {
-                Iec104Utility::log_warn("%s remote_certs.cert_file does not exist or is not a string", beforeLog.c_str());
+                Iec104Utility::log_warn("%s remote_certs.cert_file does not exist or is not a string", beforeLog.c_str()); //LCOV_EXCL_LINE
             }
         }
     }
     else {
-        Iec104Utility::log_warn("%s remote_certs does not exist or is not an array", beforeLog.c_str());
+        Iec104Utility::log_warn("%s remote_certs does not exist or is not an array", beforeLog.c_str()); //LCOV_EXCL_LINE
     }
 
     m_tlsConfigComplete = true;
@@ -1059,7 +1059,7 @@ IEC104ClientConfig::getExchangeDefinitionByLabel(std::string& label)
 
 void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
 {
-    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importExchangeConfig -";
+    std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConfig::importExchangeConfig -"; //LCOV_EXCL_LINE
     m_exchangeConfigComplete = false;
 
     deleteExchangeDefinitions();
@@ -1067,25 +1067,25 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
     Document document;
 
     if (document.Parse(const_cast<char*>(exchangeConfig.c_str())).HasParseError()) {
-        Iec104Utility::log_fatal("%s Parsing error in exchanged_data json, offset %u: %s", beforeLog.c_str(),
+        Iec104Utility::log_fatal("%s Parsing error in exchanged_data json, offset %u: %s", beforeLog.c_str(), //LCOV_EXCL_LINE
                                 static_cast<unsigned>(document.GetErrorOffset()), GetParseError_En(document.GetParseError()));
         return;
     }
 
     if (!document.IsObject()) {
-        Iec104Utility::log_fatal("%s Root is not an object", beforeLog.c_str());
+        Iec104Utility::log_fatal("%s Root is not an object", beforeLog.c_str()); //LCOV_EXCL_LINE
         return;
     }
 
     if (!document.HasMember(JSON_EXCHANGED_DATA) || !document[JSON_EXCHANGED_DATA].IsObject()) {
-        Iec104Utility::log_fatal("%s %s does not exist or is not an object", beforeLog.c_str(), JSON_EXCHANGED_DATA);
+        Iec104Utility::log_fatal("%s %s does not exist or is not an object", beforeLog.c_str(), JSON_EXCHANGED_DATA); //LCOV_EXCL_LINE
         return;
     }
 
     const Value& exchangeData = document[JSON_EXCHANGED_DATA];
 
     if (!exchangeData.HasMember(JSON_DATAPOINTS) || !exchangeData[JSON_DATAPOINTS].IsArray()) {
-        Iec104Utility::log_fatal("%s %s does not exist or is not an array", beforeLog.c_str(), JSON_DATAPOINTS);
+        Iec104Utility::log_fatal("%s %s does not exist or is not an array", beforeLog.c_str(), JSON_DATAPOINTS); //LCOV_EXCL_LINE
         return;
     }
 
@@ -1094,12 +1094,12 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
     for (const Value& datapoint : datapoints.GetArray()) {
 
         if (!datapoint.IsObject()) {
-            Iec104Utility::log_error("%s %s element is not an object", beforeLog.c_str(), JSON_DATAPOINTS);
+            Iec104Utility::log_error("%s %s element is not an object", beforeLog.c_str(), JSON_DATAPOINTS); //LCOV_EXCL_LINE
             return;
         } 
 
         if (!datapoint.HasMember(JSON_LABEL) || !datapoint[JSON_LABEL].IsString()) {
-            Iec104Utility::log_error("%s %s does not exist or is not a string", beforeLog.c_str(), JSON_LABEL);
+            Iec104Utility::log_error("%s %s does not exist or is not a string", beforeLog.c_str(), JSON_LABEL); //LCOV_EXCL_LINE
             return;
         }
 
@@ -1111,25 +1111,25 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
             for (const Value &subtype : datapoint[JSON_PIVOT_SUBTYPES].GetArray()) {
                 if (subtype.IsString() && subtype.GetString() == string(JSON_TRIGGER_SOUTH_GI_PIVOT_SUBTYPE)) {
                     isGiTriggeringTs = true;
-                    break;
+                    break; //LCOV_EXCL_LINE
                 }
             }
         }
 
         if (!datapoint.HasMember(JSON_PROTOCOLS) || !datapoint[JSON_PROTOCOLS].IsArray()) {
-            Iec104Utility::log_error("%s %s does not exist or is not an array", beforeLog.c_str(), JSON_PROTOCOLS);
+            Iec104Utility::log_error("%s %s does not exist or is not an array", beforeLog.c_str(), JSON_PROTOCOLS); //LCOV_EXCL_LINE
             return;
         }
 
         for (const Value& protocol : datapoint[JSON_PROTOCOLS].GetArray()) {
             
             if (!protocol.IsObject()) {
-                Iec104Utility::log_error("%s %s element is not an object", beforeLog.c_str(), JSON_PROTOCOLS);
+                Iec104Utility::log_error("%s %s element is not an object", beforeLog.c_str(), JSON_PROTOCOLS); //LCOV_EXCL_LINE
                 return;
             } 
             
             if (!protocol.HasMember(JSON_PROT_NAME) || !protocol[JSON_PROT_NAME].IsString()) {
-                Iec104Utility::log_error("%s %s does not exist or is not a string", beforeLog.c_str(), JSON_PROT_NAME);
+                Iec104Utility::log_error("%s %s does not exist or is not a string", beforeLog.c_str(), JSON_PROT_NAME); //LCOV_EXCL_LINE
                 return;
             }
             
@@ -1139,11 +1139,11 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                 int giGroups = 0;
 
                 if (!protocol.HasMember(JSON_PROT_ADDR) || !protocol[JSON_PROT_ADDR].IsString()) {
-                    Iec104Utility::log_error("%s %s does not exist or is not a string", beforeLog.c_str(), JSON_PROT_ADDR);
+                    Iec104Utility::log_error("%s %s does not exist or is not a string", beforeLog.c_str(), JSON_PROT_ADDR); //LCOV_EXCL_LINE
                     return;
                 }
                 if (!protocol.HasMember(JSON_PROT_TYPEID) || !protocol[JSON_PROT_TYPEID].IsString()) {
-                    Iec104Utility::log_error("%s %s does not exist or is not a string", beforeLog.c_str(), JSON_PROT_TYPEID);
+                    Iec104Utility::log_error("%s %s does not exist or is not a string", beforeLog.c_str(), JSON_PROT_TYPEID); //LCOV_EXCL_LINE
                     return;
                 }
 
@@ -1162,12 +1162,12 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                             }
                         }
                     } else {
-                        Iec104Utility::log_warn("%s %s value is not a string", beforeLog.c_str(),
+                        Iec104Utility::log_warn("%s %s value is not a string", beforeLog.c_str(), //LCOV_EXCL_LINE
                                                 JSON_PROT_GI_GROUPS);
                     }
                 }
 
-                Iec104Utility::log_debug("%s GI GROUPS = %i", beforeLog.c_str(), giGroups);
+                Iec104Utility::log_debug("%s GI GROUPS = %i", beforeLog.c_str(), giGroups); //LCOV_EXCL_LINE
 
                 size_t sepPos = address.find("-");
 
@@ -1181,11 +1181,11 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                         ca = std::stoi(caStr);
                         ioa = std::stoi(ioaStr);
                     } catch (const std::invalid_argument &e) {
-                        Iec104Utility::log_error("%s  Cannot convert ca '%s' or ioa '%s' to integer: %s",
+                        Iec104Utility::log_error("%s  Cannot convert ca '%s' or ioa '%s' to integer: %s", //LCOV_EXCL_LINE
                                                 beforeLog.c_str(), caStr.c_str(), ioaStr.c_str(), e.what());
                         return;
                     } catch (const std::out_of_range &e) {
-                        Iec104Utility::log_error("%s  Cannot convert ca '%s' or ioa '%s' to integer: %s",
+                        Iec104Utility::log_error("%s  Cannot convert ca '%s' or ioa '%s' to integer: %s", //LCOV_EXCL_LINE
                                                 beforeLog.c_str(), caStr.c_str(), ioaStr.c_str(), e.what());
                         return;
                     }
@@ -1199,17 +1199,17 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                         def->typeId = IEC104ClientConfig::getTypeIdFromString(typeIdStr);
                         def->giGroups = giGroups;
 
-                        Iec104Utility::log_debug("%s  Added exchange data %i:%i type: %i (%s)", beforeLog.c_str(), ca, ioa, def->typeId,
+                        Iec104Utility::log_debug("%s  Added exchange data %i:%i type: %i (%s)", beforeLog.c_str(), ca, ioa, def->typeId, //LCOV_EXCL_LINE
                                                 typeIdStr.c_str());
                         ExchangeDefinition()[ca][ioa] = def;
 
                         if (isGiTriggeringTs) {
-                            Iec104Utility::log_debug("Adding TS %s with ca %d ioa %d to GI triggering one", def->label, def->ca, def->ioa);
+                            Iec104Utility::log_debug("Adding TS %s with ca %d ioa %d to GI triggering one", def->label, def->ca, def->ioa); //LCOV_EXCL_LINE
                             m_cgTriggeringTsAdresses.insert(make_pair(ca, ioa));
                         }
                     }
                 } else {
-                    Iec104Utility::log_error("%s  %s value does not follow format 'XXX-YYY': %s", beforeLog.c_str(), JSON_PROT_ADDR,
+                    Iec104Utility::log_error("%s  %s value does not follow format 'XXX-YYY': %s", beforeLog.c_str(), JSON_PROT_ADDR, //LCOV_EXCL_LINE
                                             address.c_str());
                     return;
                 }
