@@ -151,17 +151,17 @@ IEC104::m_singleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             } catch (const std::out_of_range &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             }
         }
 
         Iec104Utility::log_debug("%s operate: single command - CA: %i IOA: %i value: %i select: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                ca, ioa, value, select, time);
+                                ca, ioa, value, select, time); //LCOV_EXCL_LINE
 
         return m_client->sendSingleCommand(ca, ioa, value, withTime, select, time);
     }
@@ -197,17 +197,17 @@ IEC104::m_doubleCommandOperation(int count, PLUGIN_PARAMETER** params, bool with
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             } catch (const std::out_of_range &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             }
         }
 
         Iec104Utility::log_debug("%s operate: double command - CA: %i IOA: %i value: %i select: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                ca, ioa, value, select, time);
+                                ca, ioa, value, select, time); //LCOV_EXCL_LINE
 
         return m_client->sendDoubleCommand(ca, ioa, value, withTime, select, time);
     }
@@ -243,17 +243,17 @@ IEC104::m_stepCommandOperation(int count, PLUGIN_PARAMETER** params, bool withTi
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             } catch (const std::out_of_range &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             }
         }
 
         Iec104Utility::log_debug("%s operate: step command - CA: %i IOA: %i value: %i select: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                ca, ioa, value, select, time);
+                                ca, ioa, value, select, time); //LCOV_EXCL_LINE
 
         return m_client->sendStepCommand(ca, ioa, value, withTime, select, time);
     }
@@ -285,17 +285,17 @@ IEC104::m_setpointNormalized(int count, PLUGIN_PARAMETER** params, bool withTime
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             } catch (const std::out_of_range &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             }
         }
 
         Iec104Utility::log_debug("%s operate: setpoint command (normalized) - CA: %i IOA: %i value: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                ca, ioa, value, time);
+                                ca, ioa, value, time); //LCOV_EXCL_LINE
 
         return m_client->sendSetpointNormalized(ca, ioa, value, withTime, time);
     }
@@ -327,17 +327,17 @@ IEC104::m_setpointScaled(int count, PLUGIN_PARAMETER** params, bool withTime) co
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             } catch (const std::out_of_range &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             }
         }
 
         Iec104Utility::log_debug("%s operate: setpoint command (scaled) - CA: %i IOA: %i value: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                ca, ioa, value, time);
+                                ca, ioa, value, time); //LCOV_EXCL_LINE
 
         return m_client->sendSetpointScaled(ca, ioa, value, withTime, time);
     }
@@ -368,17 +368,17 @@ IEC104::m_setpointShort(int count, PLUGIN_PARAMETER** params, bool withTime) con
                 time = std::stol(params[TS]->value);
             } catch (const std::invalid_argument &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             } catch (const std::out_of_range &e) {
                 Iec104Utility::log_error("%s (CA: %i IOA: %i) Cannot convert time '%s' to integer: %s", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what());
+                                        beforeLog.c_str(), ca, ioa, params[TS]->value.c_str(), e.what()); //LCOV_EXCL_LINE
                 return false;
             }
         }
 
         Iec104Utility::log_debug("%s operate: setpoint command (short) - CA: %i IOA: %i value: %i timestamp: %ld", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                ca, ioa, value, time);
+                                ca, ioa, value, time); //LCOV_EXCL_LINE
 
         return m_client->sendSetpointShort(ca, ioa, value, withTime, time);
     }
@@ -432,7 +432,7 @@ IEC104::operation(const std::string& operation, int count, PLUGIN_PARAMETER** pa
 
     auto namesParamsPair = paramsToStr(params, count);
     Iec104Utility::log_info("%s Received operation: {type: \"%s\", nbParams=%d, names=%s, parameters=%s}", //LCOV_EXCL_LINE
-                            beforeLog.c_str(), operation.c_str(), count, namesParamsPair.first.c_str(), namesParamsPair.second.c_str());
+                            beforeLog.c_str(), operation.c_str(), count, namesParamsPair.first.c_str(), namesParamsPair.second.c_str()); //LCOV_EXCL_LINE
 
     if (operation == "CS104_Connection_sendInterrogationCommand")
     {

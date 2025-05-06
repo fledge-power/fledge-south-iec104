@@ -380,7 +380,7 @@ IEC104ClientConfig::checkExchangeDataLayer(int typeId, int ca, int ioa)
         }
         else {
             Iec104Utility::log_warn("%s data point %i:%i found but type %s (%i) not matching", beforeLog.c_str(), ca, ioa, //LCOV_EXCL_LINE
-                                    IEC104ClientConfig::getStringFromTypeID(def->typeId).c_str(), def->typeId);
+                                    IEC104ClientConfig::getStringFromTypeID(def->typeId).c_str(), def->typeId); //LCOV_EXCL_LINE
         }
     }
     else {
@@ -409,7 +409,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
 
     if (document.Parse(const_cast<char*>(protocolConfig.c_str())).HasParseError()) {
         Iec104Utility::log_fatal("%s Parsing error in protocol_stack json, offset %u: %s", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                static_cast<unsigned>(document.GetErrorOffset()), GetParseError_En(document.GetParseError()));
+                                static_cast<unsigned>(document.GetErrorOffset()), GetParseError_En(document.GetParseError())); //LCOV_EXCL_LINE
         return;
     }
 
@@ -486,12 +486,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_warn("%s application_layer.orig_addr value out of range [1..255]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), origAddr, m_origAddr);
+                                        beforeLog.c_str(), origAddr, m_origAddr); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s application_layer.orig_addr is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_origAddr);
+                                    m_origAddr); //LCOV_EXCL_LINE
         }
     }
 
@@ -504,12 +504,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_warn("%s application_layer.ca_asdu_size value out of range [1..2]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), caSize, m_caSize);
+                                        beforeLog.c_str(), caSize, m_caSize); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s application_layer.ca_asdu_size is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_caSize);
+                                    m_caSize); //LCOV_EXCL_LINE
         }
     }
 
@@ -522,12 +522,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_warn("%s application_layer.ioaddr_size value out of range [1..3]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), ioaSize, m_ioaSize);
+                                        beforeLog.c_str(), ioaSize, m_ioaSize); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s application_layer.ioaddr_size is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_ioaSize);
+                                    m_ioaSize); //LCOV_EXCL_LINE
         }
     }
 
@@ -540,12 +540,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_warn("%s application_layer.asdu_size value out of range [0,11..253]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), asduSize, m_asduSize);
+                                        beforeLog.c_str(), asduSize, m_asduSize); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s application_layer.asdu_size is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_asduSize);
+                                    m_asduSize); //LCOV_EXCL_LINE
         }
     }
 
@@ -555,7 +555,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
 
             if (timeSyncValue < 0) {
                 Iec104Utility::log_warn("%s application_layer.time_sync value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), timeSyncValue, m_timeSyncPeriod);
+                                        beforeLog.c_str(), timeSyncValue, m_timeSyncPeriod); //LCOV_EXCL_LINE
             }
             else {
                 m_timeSyncPeriod = timeSyncValue;
@@ -564,7 +564,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
         }
         else {
             Iec104Utility::log_warn("%s application_layer.time_sync is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_timeSyncPeriod);
+                                    m_timeSyncPeriod); //LCOV_EXCL_LINE
         }
     }
 
@@ -574,7 +574,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
         }
         else {
             Iec104Utility::log_warn("%s applicationLayer.gi_all_ca is not a bool -> using default value (%s)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    (m_giAllCa?"true":"false"));
+                                    (m_giAllCa?"true":"false")); //LCOV_EXCL_LINE
         }
     }
 
@@ -587,12 +587,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_warn("%s application_layer.gi_time value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), giTime, m_giTime);
+                                        beforeLog.c_str(), giTime, m_giTime); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s application_layer.gi_time is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_giTime);
+                                    m_giTime); //LCOV_EXCL_LINE
         }
     }
 
@@ -602,7 +602,7 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
         }
         else {
             Iec104Utility::log_warn("%s applicationLayer.gi_enabled is not a bool -> using default value (%s)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    (m_giEnabled?"true":"false"));
+                                    (m_giEnabled?"true":"false")); //LCOV_EXCL_LINE
         }
     }
 
@@ -615,12 +615,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_warn("%s application_layer.gi_cycle value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), giCycle, m_giCycle);
+                                        beforeLog.c_str(), giCycle, m_giCycle); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s application_layer.gi_cycle is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_giCycle);
+                                    m_giCycle); //LCOV_EXCL_LINE
         }
     }
 
@@ -633,12 +633,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_warn("%s application_layer.gi_repeat_count value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), giRepeatCount, m_giRepeatCount);
+                                        beforeLog.c_str(), giRepeatCount, m_giRepeatCount); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s application_layer.gi_repeat_count is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_giRepeatCount);
+                                    m_giRepeatCount); //LCOV_EXCL_LINE
         }
     }
 
@@ -651,12 +651,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_warn("%s application_layer.cmd_parallel value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), cmdParallel, m_cmdParallel);
+                                        beforeLog.c_str(), cmdParallel, m_cmdParallel); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s application_layer.cmd_parallel is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_cmdParallel);
+                                    m_cmdParallel); //LCOV_EXCL_LINE
         }
     }
 
@@ -669,12 +669,12 @@ void IEC104ClientConfig::importProtocolConfig(const string& protocolConfig)
             }
             else {
                 Iec104Utility::log_warn("%s application_layer.cmd_exec_timeout value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), cmdExecTimeout, m_cmdExecTimeout);
+                                        beforeLog.c_str(), cmdExecTimeout, m_cmdExecTimeout); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s application_layer.cmd_exec_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    m_cmdExecTimeout);
+                                    m_cmdExecTimeout); //LCOV_EXCL_LINE
         }
     }
 
@@ -714,7 +714,7 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
     }
     else {
         Iec104Utility::log_debug("%s  connections does not exist or is not an array -> adding fallback group", //LCOV_EXCL_LINE
-                                beforeLog.c_str());
+                                beforeLog.c_str()); //LCOV_EXCL_LINE
     }
 
     if (redGroup.HasMember("k_value")) {
@@ -726,12 +726,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
             }
             else {
                 Iec104Utility::log_warn("%s redGroup.k_value value out of range [1..32767]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), kValue, redundancyGroup->K());
+                                        beforeLog.c_str(), kValue, redundancyGroup->K()); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s redGroup.k_value is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    redundancyGroup->K());
+                                    redundancyGroup->K()); //LCOV_EXCL_LINE
         }
     }
 
@@ -744,12 +744,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
             }
             else {
                 Iec104Utility::log_warn("%s redGroup.w_value value out of range [1..32767]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), wValue, redundancyGroup->W());
+                                        beforeLog.c_str(), wValue, redundancyGroup->W()); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s redGroup.w_value is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    redundancyGroup->W());
+                                    redundancyGroup->W()); //LCOV_EXCL_LINE
         }
     }
 
@@ -762,12 +762,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
             }
             else {
                 Iec104Utility::log_warn("%s redGroup.t0_timeout value out of range [1..255]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), t0Timeout, redundancyGroup->T0());
+                                        beforeLog.c_str(), t0Timeout, redundancyGroup->T0()); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s redGroup.t0_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    redundancyGroup->T0());
+                                    redundancyGroup->T0()); //LCOV_EXCL_LINE
         }
     }
 
@@ -780,12 +780,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
             }
             else {
                 Iec104Utility::log_warn("%s redGroup.t1_timeout value out of range [1..255]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), t1Timeout, redundancyGroup->T1());
+                                        beforeLog.c_str(), t1Timeout, redundancyGroup->T1()); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s redGroup.t1_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    redundancyGroup->T1());
+                                    redundancyGroup->T1()); //LCOV_EXCL_LINE
         }
     }
 
@@ -798,12 +798,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
             }
             else {
                 Iec104Utility::log_warn("%s redGroup.t2_timeout value out of range [1..255]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), t2Timeout, redundancyGroup->T2());
+                                        beforeLog.c_str(), t2Timeout, redundancyGroup->T2()); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s redGroup.t2_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    redundancyGroup->T2());
+                                    redundancyGroup->T2()); //LCOV_EXCL_LINE
         }
     }
 
@@ -816,12 +816,12 @@ void IEC104ClientConfig::importRedGroup(const Value& redGroup)
             }
             else {
                 Iec104Utility::log_warn("%s redGroup.t3_timeout value out of range [0..+Inf]: %d -> using default value (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), t3Timeout, redundancyGroup->T3());
+                                        beforeLog.c_str(), t3Timeout, redundancyGroup->T3()); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s redGroup.t3_timeout is not an integer -> using default value (%d)", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                    redundancyGroup->T3());
+                                    redundancyGroup->T3()); //LCOV_EXCL_LINE
         }
     }
 
@@ -874,12 +874,12 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
             }
             else {
                 Iec104Utility::log_error("%s  clt_ip %s is not a valid IP address -> ignore client", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), cltIpStr.c_str());
+                                        beforeLog.c_str(), cltIpStr.c_str()); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s  clt_ip is not a string -> ignore client", //LCOV_EXCL_LINE
-                                    beforeLog.c_str());
+                                    beforeLog.c_str()); //LCOV_EXCL_LINE
         }
     }
     
@@ -892,12 +892,12 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
             }
             else {
                 Iec104Utility::log_error("%s  port value out of range [1..65635]: %d -> using default port (%d)", //LCOV_EXCL_LINE
-                                        beforeLog.c_str(), tcpPortVal, tcpPort);
+                                        beforeLog.c_str(), tcpPortVal, tcpPort); //LCOV_EXCL_LINE
             }
         }
         else {
             Iec104Utility::log_warn("%s  port is not an integer -> using default port (%d)", //LCOV_EXCL_LINE
-                                    beforeLog.c_str(), tcpPort);
+                                    beforeLog.c_str(), tcpPort); //LCOV_EXCL_LINE
         }
     }
 
@@ -907,7 +907,7 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
         }
         else {
             Iec104Utility::log_warn("%s  conn is not a bool -> using default conn (%s)", //LCOV_EXCL_LINE
-                                    beforeLog.c_str(), conn?"true":"false");
+                                    beforeLog.c_str(), conn?"true":"false"); //LCOV_EXCL_LINE
         }
     }
 
@@ -917,7 +917,7 @@ void IEC104ClientConfig::importRedGroupCon(const Value& con, std::shared_ptr<IEC
         }
         else {
             Iec104Utility::log_warn("%s  start is not a bool -> using default start (%s)", //LCOV_EXCL_LINE
-                                    beforeLog.c_str(), start?"true":"false");
+                                    beforeLog.c_str(), start?"true":"false"); //LCOV_EXCL_LINE
         }
     }
 
@@ -940,7 +940,7 @@ IEC104ClientConfig::importTlsConfig(const string& tlsConfig)
 
     if (document.Parse(const_cast<char*>(tlsConfig.c_str())).HasParseError()) {
         Iec104Utility::log_fatal("%s Parsing error in tls_conf json, offset %u: %s", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                static_cast<unsigned>(document.GetErrorOffset()), GetParseError_En(document.GetParseError()));
+                                static_cast<unsigned>(document.GetErrorOffset()), GetParseError_En(document.GetParseError())); //LCOV_EXCL_LINE
         return;
     }
        
@@ -1068,7 +1068,7 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
 
     if (document.Parse(const_cast<char*>(exchangeConfig.c_str())).HasParseError()) {
         Iec104Utility::log_fatal("%s Parsing error in exchanged_data json, offset %u: %s", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                static_cast<unsigned>(document.GetErrorOffset()), GetParseError_En(document.GetParseError()));
+                                static_cast<unsigned>(document.GetErrorOffset()), GetParseError_En(document.GetParseError())); //LCOV_EXCL_LINE
         return;
     }
 
@@ -1163,7 +1163,7 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                         }
                     } else {
                         Iec104Utility::log_warn("%s %s value is not a string", beforeLog.c_str(), //LCOV_EXCL_LINE
-                                                JSON_PROT_GI_GROUPS);
+                                                JSON_PROT_GI_GROUPS); //LCOV_EXCL_LINE
                     }
                 }
 
@@ -1182,11 +1182,11 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                         ioa = std::stoi(ioaStr);
                     } catch (const std::invalid_argument &e) {
                         Iec104Utility::log_error("%s  Cannot convert ca '%s' or ioa '%s' to integer: %s", //LCOV_EXCL_LINE
-                                                beforeLog.c_str(), caStr.c_str(), ioaStr.c_str(), e.what());
+                                                beforeLog.c_str(), caStr.c_str(), ioaStr.c_str(), e.what()); //LCOV_EXCL_LINE
                         return;
                     } catch (const std::out_of_range &e) {
                         Iec104Utility::log_error("%s  Cannot convert ca '%s' or ioa '%s' to integer: %s", //LCOV_EXCL_LINE
-                                                beforeLog.c_str(), caStr.c_str(), ioaStr.c_str(), e.what());
+                                                beforeLog.c_str(), caStr.c_str(), ioaStr.c_str(), e.what()); //LCOV_EXCL_LINE
                         return;
                     }
 
@@ -1200,7 +1200,7 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                         def->giGroups = giGroups;
 
                         Iec104Utility::log_debug("%s  Added exchange data %i:%i type: %i (%s)", beforeLog.c_str(), ca, ioa, def->typeId, //LCOV_EXCL_LINE
-                                                typeIdStr.c_str());
+                                                typeIdStr.c_str()); //LCOV_EXCL_LINE
                         ExchangeDefinition()[ca][ioa] = def;
 
                         if (isGiTriggeringTs) {
@@ -1210,7 +1210,7 @@ void IEC104ClientConfig::importExchangeConfig(const string& exchangeConfig)
                     }
                 } else {
                     Iec104Utility::log_error("%s  %s value does not follow format 'XXX-YYY': %s", beforeLog.c_str(), JSON_PROT_ADDR, //LCOV_EXCL_LINE
-                                            address.c_str());
+                                            address.c_str()); //LCOV_EXCL_LINE
                     return;
                 }
             }
