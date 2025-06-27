@@ -746,7 +746,9 @@ TEST_F(LegacyConnectionHandlingTest, SendConnectionStatusAfterRequestNorthStatus
 
     // Call 3 times consecutively - should only trigger 2 additional GIs
     iec104->operation("north_status", 1, params);
+    Thread_sleep(50);
     iec104->operation("north_status", 1, params);
+    Thread_sleep(50);
     //Scheduled GI should be ignored for this one
     iec104->operation("north_status", 1, params);
     Thread_sleep(2000);

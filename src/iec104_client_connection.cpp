@@ -682,27 +682,12 @@ IEC104ClientConnection::executePeriodicTasks()
                         setGiRequested(false);
                         startNewInterrogationCycle();
                     }
-                    else if (m_giPendingCount > 0 && (m_client->getGiStatus() == IEC104Client::GiStatus::FAILED || m_client->getGiStatus() == IEC104Client::GiStatus::FINISHED)) {
-                        Iec104Utility::log_debug("%s Starting Scheduled GI cycle on request.", beforeLog.c_str());
-                        m_giPendingCount--;
-                        startNewInterrogationCycle();
-                    }
                 }
             }
         }
     }
 }
-/**
 
-*/
-bool IEC104ClientConnection::addScheduledGI(){
-    int old = m_giPendingCount.load();
-    if (old < MAX_GI_PENDING) {
-        m_giPendingCount++;
-        return true;
-    }
-    return false;
-}
 
 bool
 IEC104ClientConnection::m_asduReceivedHandler(void* parameter, int address,

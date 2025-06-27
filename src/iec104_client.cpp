@@ -1612,7 +1612,8 @@ bool IEC104Client::scheduleGI()
 {
     if (m_activeConnection != nullptr)
     {
-        return m_activeConnection->addScheduledGI();
+        m_activeConnection->setGiRequested(true);
+        return true;
     }
     return false;
 }

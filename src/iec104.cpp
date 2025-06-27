@@ -488,14 +488,14 @@ IEC104::operation(const std::string& operation, int count, PLUGIN_PARAMETER** pa
         if (north_status_type == "init_socket_finished"){
             // schedule a Interrogation command to the control station
             if(m_client->scheduleGI()){
-                Iec104Utility::log_info("init_socket_finished operation received, scheduling GI");
+                Iec104Utility::log_info("%s init_socket_finished operation received, scheduling GI", beforeLog.c_str()); //LCOV_EXCL_LINE
             }else{
-                Iec104Utility::log_info("Too many GI schedule GI ignored");
+                Iec104Utility::log_info("%s Too many GI schedule GI ignored", beforeLog.c_str()); //LCOV_EXCL_LINE
             }
-                return true;
+            return true;
 
         }
-        Iec104Utility::log_error("%s Unrecognised operation %s type=%s", beforeLog.c_str(), operation.c_str(), north_status_type.c_str());
+        Iec104Utility::log_error("%s Unrecognised operation %s type=%s",beforeLog.c_str(), operation.c_str(), north_status_type.c_str()); //LCOV_EXCL_LINE
     }
 
     Iec104Utility::log_error("%s Unrecognised operation %s", beforeLog.c_str(), operation.c_str());
