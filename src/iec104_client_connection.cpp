@@ -13,6 +13,7 @@
 #include "iec104_client_redgroup.h"
 #include "iec104_utility.h"
 
+
 //DUPLICATE! see iec104_client.c
 static uint64_t getMonotonicTimeInMs()
 {
@@ -47,7 +48,7 @@ IEC104ClientConnection::Activate()
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConnection::Activate - ["
                         + m_redGroup->Name() + ", " + std::to_string(m_redGroupConnection->ConnId()) + ", "
                         + m_redGroupConnection->ServerIP() + ":" + std::to_string(m_redGroupConnection->TcpPort()) + "] -";
-    
+
     std::lock_guard<std::mutex> lock(m_conLock);
     if (m_connectionState == CON_STATE_CONNECTED_INACTIVE) {
         if (m_connection) {
@@ -687,12 +688,13 @@ IEC104ClientConnection::executePeriodicTasks()
     }
 }
 
+
 bool
 IEC104ClientConnection::m_asduReceivedHandler(void* parameter, int address,
                                    CS101_ASDU asdu)
 {
     IEC104ClientConnection* self = static_cast<IEC104ClientConnection*>(parameter);
-    
+
     std::string beforeLog = Iec104Utility::PluginName + " - IEC104ClientConnection::m_asduReceivedHandler - ["
                         + self->m_redGroup->Name() + ", "
                         + std::to_string(self->m_redGroupConnection->ConnId()) + ", "
