@@ -12,7 +12,6 @@ class IEC104Client;
 class IEC104ClientRedGroup;
 class IEC104ClientConfig;
 class RedGroupCon;
-
 class IEC104ClientConnection
 {
 public:
@@ -76,7 +75,6 @@ private:
     std::shared_ptr<IEC104ClientRedGroup> m_redGroup;
     std::shared_ptr<RedGroupCon> m_redGroupConnection;
     std::shared_ptr<IEC104Client> m_client;
-
     /* global state information */
     bool m_connected = false; /* connection is in connected state */
     bool m_active = false;    /* connection is connected and active */
@@ -84,7 +82,6 @@ private:
 
     bool m_connect = false; /* flag to indicate that the connection is to be establish */
     bool m_disconnect = false; /* flag to indicate that the connection has to be disconnected */
-
     int broadcastCA() const;
 
     std::mutex m_conLock;
