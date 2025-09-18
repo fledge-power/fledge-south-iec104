@@ -10,6 +10,17 @@ on:
     
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Define the tag'
+        required: false
+        type: choice
+        options:
+          - v2.0.0
+          - v1.4.0
+          - v1.3.2
+          - v1.3.1
+          - v1.3.0
   
 jobs:
   build:
