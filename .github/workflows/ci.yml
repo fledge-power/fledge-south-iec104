@@ -136,4 +136,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" --define sonar.organization="fledge-power" --define sonar.projectKey="fledge-power_fledge-south-iec104" --define sonar.inclusions="src/*,include/*" --define sonar.coverageReportPaths="build/iec104_coverage_sonar-sonarqube.xml"
+          sonar-scanner \
+            --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" \
+            --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
+            --define sonar.organization="fledge-power" \
+            --define sonar.projectKey="fledge-power_fledge-south-iec104" \
+            --define sonar.inclusions="src/*,include/*" \
+            --define sonar.coverageReportPaths="build/iec104_coverage_sonar-sonarqube.xml" \
+            --define sonar.branch.name="${{ github.event.inputs.tags }}"
+            
