@@ -12,15 +12,9 @@ on:
   workflow_dispatch:
     inputs:
       tags:
-        description: 'Define the tag'
+        description: 'Define the tag (e.g. v2.3.1). If not set, the current branch or tag name will be used. If set, the scan will generate the report using this tag and run on the specified tag.'
         required: false
-        type: choice
-        options:
-          - v2.0.0
-          - v1.4.0
-          - v1.3.2
-          - v1.3.1
-          - v1.3.0
+        type: string
   
 jobs:
   build:
@@ -137,10 +131,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner \
-            --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" \
-            --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
-            --define sonar.organization="fledge-power" \
-            --define sonar.projectKey="fledge-power_fledge-south-iec104" \
-            --define sonar.inclusions="src/*,include/*" \
-            --define sonar.coverageReportPaths="build/iec104_coverage_sonar-sonarqube.xml" \
-            --define sonar.branch.name="${{ github.event.inputs.tags || github.ref }}"
+          --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" \
+          --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
+          --define sonar.organization="fledge-power" \
+          --define sonar.projectKey="fledge-power_fledge-south-iec104" \
+          --define sonar.inclusions="src/*,include/*" \
+          --define sonar.coverageReportPaths="build/iec104_coverage_sonar-sonarqube.xml" \
+          --define sonar.branch.name="${{ github.event.inputs.tags || github.ref_name }}"
